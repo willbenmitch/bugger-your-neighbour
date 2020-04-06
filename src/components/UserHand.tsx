@@ -9,9 +9,8 @@ type Props = {
 type State = {}
 
 class UserHand extends React.Component<Props, State> {
-
     render() {
-        return (<div></div>)
+        return <div></div>
     }
 }
 

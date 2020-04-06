@@ -1,7 +1,6 @@
-
 export type Card = {
     suit: string
     rank: number
-    onPlayCard: () => void,
+    onPlayCard: () => void
     onRenegCard: () => void
 }
