@@ -7,14 +7,21 @@ app.get('/', function (req, res) {
 })
 
 let gameState = undefined
+let users = 0
 
 io.on('connection', (socket) => {
     console.log('a user connected')
+    users++
     if (gameState) {
         socket.emit('gameState', gameState)
     }
     socket.on('disconnect', function () {
         console.log('user disconnected')
+        users--
+        if (users === 0) {
+            // reset game state when everyone's left
+            gameState = undefined
+        }
     })
     socket.on('gameState', (msg) => {
         console.log('game state server', msg)

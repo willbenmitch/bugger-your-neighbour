@@ -49,6 +49,17 @@
   transform: translate3d(-50%, -50%, 0); */
 }
 
+#hand {
+    position: fixed;
+    top: calc(15% + 1.5rem);
+    left: 90%;
+    -webkit-transform: translate3d(-50%, -50%, 0);
+    -moz-transform: translate3d(-50%, -50%, 0);
+    -o-transform: translate3d(-50%, -50%, 0);
+    -ms-transform: translate3d(-50%, -50%, 0);
+    transform: translate3d(-50%, -50%, 0);
+}
+
 /* Copied from node_modules/deck-of-cards/example/example.css */
 
 * {

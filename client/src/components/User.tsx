@@ -21,13 +21,6 @@ class User extends React.Component<Props, State> {
         const { name, y, x, isOccupied, onLeave, onSit, isMe, canOccupy, isDealer } = this.props
         const occupied = isOccupied ? isMe ? <button onClick={onLeave}>Leave</button> : null : canOccupy ? <button onClick={onSit}>Sit</button> : null
         const dealer = isDealer ? <p>Dealer</p> : null
-
-        // let occupied = null
-        // if (isMe) {
-        //     occupied = isOccupied ? <button onClick={onLeave}>Leave</button> : <button onClick={onSit}>Sit</button>
-        // } else {
-        //     occupied = isOccupied ?
-        // }
         return (
             <div style={{ position: 'absolute', top: `${y}vh`, right: `${x}vw`, width: '10vh', height: '10vh' }}>
                 <p>{name}</p>
