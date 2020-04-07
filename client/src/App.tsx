@@ -1,5 +1,6 @@
 import React from 'react'
 import './App.css'
+import '../node_modules/deck-of-cards/example/example.css'
 // @ts-ignore
 import io from 'socket.io-client'
 // @ts-ignore
@@ -8,14 +9,15 @@ import User from './components/User'
 import UserHand from './components/UserHand'
 
 const positions = [
-    { id: 0, isOccupied: false, name: 'Open', x: 70, y: 5, cards: [] },
-    { id: 1, isOccupied: false, name: 'Open', x: 50, y: 5, cards: [] },
-    { id: 2, isOccupied: false, name: 'Open', x: 25, y: 5, cards: [] },
-    { id: 3, isOccupied: false, name: 'Open', x: 25, y: 30, cards: [] },
-    { id: 4, isOccupied: false, name: 'Open', x: 25, y: 55, cards: [] },
-    { id: 5, isOccupied: false, name: 'Open', x: 25, y: 80, cards: [] },
-    { id: 6, isOccupied: false, name: 'Open', x: 50, y: 90, cards: [] },
-    { id: 7, isOccupied: false, name: 'Open', x: 75, y: 90, cards: [] },
+    { id: 0, isOccupied: false, name: 'Open', x: 50, y: 5, cards: [] },
+    { id: 1, isOccupied: false, name: 'Open', x: 25, y: 5, cards: [] },
+    { id: 2, isOccupied: false, name: 'Open', x: 25, y: 30, cards: [] },
+    { id: 3, isOccupied: false, name: 'Open', x: 25, y: 55, cards: [] },
+    { id: 4, isOccupied: false, name: 'Open', x: 25, y: 80, cards: [] },
+    { id: 5, isOccupied: false, name: 'Open', x: 50, y: 90, cards: [] },
+    { id: 6, isOccupied: false, name: 'Open', x: 75, y: 90, cards: [] },
+    { id: 7, isOccupied: false, name: 'Open', x: 85, y: 80, cards: [] },
+    { id: 8, isOccupied: false, name: 'Open', x: 85, y: 55, cards: [] },
 ]
 
 enum GamePlay {
