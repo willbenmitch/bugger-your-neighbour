@@ -2,16 +2,18 @@ import React from 'react'
 import { Card } from './types'
 
 type Props = {
-    cards: any[]
+    cards: Card[]
     isPlayerTurn: boolean
     canReneg: boolean
+    onPlayCard: (e: any, card: Card, userId?: number) => void
+    id?: number
 }
 type State = {}
 const suitMap = (suit: number) => (suit === 0 ? 'spades' : suit === 1 ? 'hearts' : suit === 2 ? 'clubs' : suit === 3 ? 'diamonds' : 'joker')
 
 class UserHand extends React.Component<Props, State> {
     render() {
-        const { cards } = this.props
+        const { cards, onPlayCard, id } = this.props
         let y = 0
         const hand = cards.map((card, i) => {
             const mod = i % 3
@@ -33,6 +35,7 @@ class UserHand extends React.Component<Props, State> {
             return (
                 <div className={`card ${suitMap(card.suit)} rank${card.rank}`} style={{ transform: `translate(${x}px, ${y}px)` }}>
                     <div className="face"></div>
+                    <button onClick={(e) => onPlayCard(e, card, id)}>Play Card</button>
                 </div>
             )
         })

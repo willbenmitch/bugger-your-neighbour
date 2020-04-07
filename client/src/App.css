@@ -14,3 +14,13 @@
     -ms-transform: translate3d(-50%, -50%, 0);
     transform: translate3d(-50%, -50%, 0);
 }
+
+#playingArea {
+    position: fixed;
+    top: 35%;
+    left: 25%;
+    width: 25%;
+    height: 25%;
+    /* border: 5px solid black; */
+    /* border-radius: 50%; */
+}

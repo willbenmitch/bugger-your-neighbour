@@ -24,14 +24,19 @@ io.on('connection', (socket) => {
         }
     })
     socket.on('gameState', (msg) => {
-        console.log('game state server', msg)
+        console.log('game state', msg)
         gameState = msg
         socket.broadcast.emit('gameState', msg)
     })
 
     socket.on('deal', (msg) => {
-        console.log('deal state server', msg)
+        console.log('deal state', msg)
         socket.broadcast.emit('deal', msg)
+    })
+
+    socket.on('playCard', (msg) => {
+        console.log('playCard state', msg)
+        socket.broadcast.emit('playCard', msg)
     })
 })
 

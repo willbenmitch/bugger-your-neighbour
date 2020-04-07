@@ -7,6 +7,7 @@ import io from 'socket.io-client'
 import Deck from 'deck-of-cards'
 import User from './components/User'
 import UserHand from './components/UserHand'
+import { Card } from './components/types'
 
 const positions = [
     { id: 0, isOccupied: false, name: 'Open', x: 50, y: 5, cards: [] },
@@ -60,6 +61,10 @@ class App extends React.Component<Props, State> {
 
     deck: any
     socket: any
+    clientHeight = () => document.documentElement.clientHeight
+    clientWidth = () => document.documentElement.clientWidth
+    cardWidth = 120
+    cardHeight = 100
 
     componentDidMount() {
         // this.initiateDeck()
@@ -79,7 +84,22 @@ class App extends React.Component<Props, State> {
             this.animateDeal()
         })
     }
-    socketHandlePlayCard = (msg: any) => {}
+    socketHandlePlayCard = (msg: any) => {
+        const { card, userId, game, x, y } = msg
+        this.setState({ game }, () => {
+            const deckCardPlayed = this.deck.cards.find((c: Card) => c.rank === card.rank && c.suit === card.suit)
+            console.log(x, y)
+            deckCardPlayed.animateTo({
+                duration: 300,
+                east: 'quartOut',
+                x: x,
+                y: y,
+                rot: Math.random() * 720,
+            })
+            deckCardPlayed.setSide('front')
+            deckCardPlayed.$el.style['z-index'] = this.state.game.currentHand.length
+        })
+    }
     socketHandleAssignDealer = (msg: any) => {}
     socketHandleGameState = (msg: any) => {
         console.log('game state received', msg)
@@ -95,7 +115,7 @@ class App extends React.Component<Props, State> {
                 const cardIndex = mod + j
                 const card = this.deck.cards[cardIndex]
 
-                users[j].cards.push(card)
+                users[j].cards.push({ ...card, isPlayed: false })
             })
         }
 
@@ -109,15 +129,11 @@ class App extends React.Component<Props, State> {
     }
 
     animateDeal = () => {
-        const clientHeight = document.documentElement.clientHeight
-        const clientWidth = document.documentElement.clientWidth
-        const cardWidth = 120
-        const cardHeight = 100
         this.state.game.users.map((user) => {
             user.cards.map((card: any, i: number) => {
                 const deckCard = this.deck.cards.find((c: any) => c.rank === card.rank && c.suit === card.suit)
-                const x = clientWidth - clientWidth * (user.x / 100) - cardWidth * 2 - 5 * i
-                const y = clientHeight * (user.y / 100) - cardHeight
+                const x = this.clientWidth() - this.clientWidth() * (user.x / 100) - this.cardWidth * 2 - 5 * i
+                const y = this.clientHeight() * (user.y / 100) - this.cardHeight
                 console.log(x, y)
                 deckCard.animateTo({
                     duration: 300,
@@ -199,6 +215,24 @@ class App extends React.Component<Props, State> {
         })
     }
 
+    handlePlayCard = (e: any, card: Card, userId?: number) => {
+        e.preventDefault()
+        if (userId === undefined) {
+            console.log('no userId provided')
+            return
+        }
+        const currentHand = [...this.state.game.currentHand]
+        currentHand.push({ card, userId })
+        const playingArea = document.getElementById('playingArea')?.getBoundingClientRect() as DOMRect
+        const x = playingArea.left - 200 + Math.random() * 400
+        const y = playingArea.top - 200 + Math.random() * 400
+        this.setState({ game: { ...this.state.game, currentHand } }, () => {
+            const message = { card, userId, game: this.state.game, x, y }
+            this.socket.emit('playCard', message)
+            this.socketHandlePlayCard(message)
+        })
+    }
+
     render() {
         const users = this.state.game.users.map(({ name, x, y, isOccupied, id }) => (
             <User
@@ -232,7 +266,8 @@ class App extends React.Component<Props, State> {
                 <span>{`  Round ${this.state.game.round} ${withTrump}`}</span>
                 <div id="users">{users}</div>
                 <div id="table"></div>
-                <UserHand cards={myCards} isPlayerTurn canReneg />
+                <div id="playingArea"></div>
+                <UserHand cards={myCards} isPlayerTurn canReneg onPlayCard={this.handlePlayCard} id={this.state.myId} />
             </div>
         )
     }
