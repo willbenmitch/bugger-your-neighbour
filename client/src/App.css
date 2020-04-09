@@ -1,0 +1,26 @@
+#table {
+    position: fixed;
+    top: 15%;
+    left: 5%;
+}
+
+#hand {
+    position: fixed;
+    top: calc(15% + 1.5rem);
+    left: 90%;
+    -webkit-transform: translate3d(-50%, -50%, 0);
+    -moz-transform: translate3d(-50%, -50%, 0);
+    -o-transform: translate3d(-50%, -50%, 0);
+    -ms-transform: translate3d(-50%, -50%, 0);
+    transform: translate3d(-50%, -50%, 0);
+}
+
+#playingArea {
+    position: fixed;
+    top: 35%;
+    left: 25%;
+    width: 25%;
+    height: 25%;
+    /* border: 5px solid black; */
+    /* border-radius: 50%; */
+}
