@@ -7,9 +7,11 @@ import io from 'socket.io-client'
 import Deck from 'deck-of-cards'
 import User from './components/User'
 import UserHand from './components/UserHand'
-import { Card } from './components/types'
+import { Card, Player, Round, RoundState, Hand } from './components/types'
+import { getHandResult } from './utils/gameLogic'
+import { getRoundOrder } from './utils/getRoundOrder'
 
-const positions = [
+const positions: Player[] = [
     { id: 0, isOccupied: false, name: 'Open', x: 50, y: 5, cards: [] },
     { id: 1, isOccupied: false, name: 'Open', x: 25, y: 5, cards: [] },
     { id: 2, isOccupied: false, name: 'Open', x: 25, y: 30, cards: [] },
@@ -21,40 +23,54 @@ const positions = [
     { id: 8, isOccupied: false, name: 'Open', x: 85, y: 55, cards: [] },
 ]
 
-enum GamePlay {
-    inactive = 'inactive',
-    dealing = 'dealing',
-    roundInProgress = 'roundInProgress',
-    roundFinished = 'roundFinished',
-}
-
 type Props = {}
 type State = {
     game: {
-        trumpCard: any
-        gamePlay: GamePlay
-        users: any[]
-        activeUserId: number
+        users: Player[]
+        activeUser?: number
         round: number
         withTrump: boolean
-        dealerId?: number
-        currentHand: any[]
+        rounds: Round[]
     }
+    round: Round
+    hand: Hand
     myId?: number
+}
+
+type GameStateMessage = State
+type PlayCardsMessage = State & {
+    cards: Card[]
+    x: number
+    y: number
+    rot?: number
+    side: 'front' | 'back'
+    zIndex?: number
 }
 
 class App extends React.Component<Props, State> {
     // @ts-ignore
     state: State = {
         game: {
-            trumpCard: undefined,
-            gamePlay: GamePlay.inactive,
             users: positions,
-            activeUserId: 0,
+            activeUser: undefined,
             round: 10,
             withTrump: true,
+            rounds: [],
+        },
+        round: {
+            id: 1,
             dealerId: undefined,
-            currentHand: [],
+            roundOrder: [],
+            state: RoundState.idle,
+            trumpCard: undefined,
+            bids: [],
+            hands: [],
+            results: [],
+        },
+        hand: {
+            cardLed: undefined,
+            cards: [],
+            winnerId: undefined,
         },
         myId: undefined,
     }
@@ -67,16 +83,17 @@ class App extends React.Component<Props, State> {
     cardHeight = 100
 
     componentDidMount() {
-        // this.initiateDeck()
         this.socket = io('http://localhost:4000')
+        // this.socket = io('https://willbenmitch-af518b0d.localhost.run')
         this.socket.on('deal', this.socketHandleDeal)
-        this.socket.on('playCard', this.socketHandlePlayCard)
+        this.socket.on('playCards', this.socketHandlePlayCard)
         this.socket.on('gameState', this.socketHandleGameState)
     }
 
-    socketHandleDeal = (msg: any) => {
+    socketHandleDeal = (msg: GameStateMessage) => {
         console.log('deal state received', msg)
-        this.setState({ game: { ...msg } }, () => {
+        const { game, round, hand } = msg
+        this.setState({ game, round, hand }, () => {
             console.log('deal state set', this.state.game)
             this.deck = undefined
             this.deck = Deck()
@@ -84,26 +101,38 @@ class App extends React.Component<Props, State> {
             this.animateDeal()
         })
     }
-    socketHandlePlayCard = (msg: any) => {
-        const { card, userId, game, x, y } = msg
-        this.setState({ game }, () => {
-            const deckCardPlayed = this.deck.cards.find((c: Card) => c.rank === card.rank && c.suit === card.suit)
+
+    socketHandlePlayCard = (msg: PlayCardsMessage) => {
+        const { cards, game, round, x, y, hand, side, zIndex, rot } = msg
+        this.setState({ game, round, hand }, () => {
+            const deckCards = cards.map((card) => this.deck.cards.find((c: Card) => c.rank === card.rank && c.suit === card.suit))
             console.log(x, y)
-            deckCardPlayed.animateTo({
-                duration: 300,
-                east: 'quartOut',
-                x: x,
-                y: y,
-                rot: Math.random() * 720,
+            deckCards.map((card) => {
+                card.animateTo({
+                    duration: 300,
+                    east: 'quartOut',
+                    x,
+                    y,
+                    rot,
+                })
+                card.setSide(side)
+                //
+                card.$el.style['z-index'] = zIndex ? zIndex : 1
             })
-            deckCardPlayed.setSide('front')
-            deckCardPlayed.$el.style['z-index'] = this.state.game.currentHand.length
         })
     }
-    socketHandleAssignDealer = (msg: any) => {}
-    socketHandleGameState = (msg: any) => {
+
+    socketHandleGameState = (msg: GameStateMessage) => {
         console.log('game state received', msg)
-        this.setState({ game: msg })
+        const { game, round, hand } = msg
+        this.setState({ game, round, hand })
+    }
+
+    asyncDeal = () => {
+        this.clearDeck()
+        this.initiateDeck()
+        this.shuffle()
+        setTimeout(this.deal, 3500)
     }
 
     deal = () => {
@@ -122,9 +151,11 @@ class App extends React.Component<Props, State> {
         const trumpCardIndex: number = users.length * this.state.game.round
         const trumpCard = this.deck.cards[trumpCardIndex]
 
-        this.setState({ game: { ...this.state.game, users, trumpCard } }, () => {
-            this.socket.emit('deal', this.state.game)
-            this.socketHandleDeal(this.state.game)
+        this.setState({ game: { ...this.state.game, users }, round: { ...this.state.round, trumpCard } }, () => {
+            const { game, round, hand } = this.state
+
+            this.socket.emit('deal', { game, round, hand })
+            this.socketHandleDeal({ game, round, hand })
         })
     }
 
@@ -144,7 +175,7 @@ class App extends React.Component<Props, State> {
                 })
             })
         })
-        const trumpCard = this.deck.cards.find((c: any) => c.rank === this.state.game.trumpCard.rank && c.suit === this.state.game.trumpCard.suit)
+        const trumpCard = this.deck.cards.find((c: any) => c.rank === this.state.round.trumpCard?.rank && c.suit === this.state.round.trumpCard?.suit)
         trumpCard.animateTo({ delay: 500, x: 120 })
         trumpCard.setSide('front')
     }
@@ -155,13 +186,9 @@ class App extends React.Component<Props, State> {
             card.disableDragging()
             card.disableFlipping()
         })
-        this.deck.mount(document.getElementById('table'))
-        this.deck.intro()
-        this.deck.shuffle()
-        this.deck.shuffle()
     }
 
-    resetDeck = () => {
+    clearDeck = () => {
         const table = document.getElementById('table')
         try {
             this.deck.unmount(table)
@@ -169,7 +196,6 @@ class App extends React.Component<Props, State> {
             console.error(err)
         }
         this.deck = undefined
-        this.initiateDeck()
     }
 
     shuffle = () => {
@@ -185,8 +211,10 @@ class App extends React.Component<Props, State> {
         const { users } = this.state.game
         users[id].isOccupied = false
         users[id].name = 'Open'
-        this.setState({ game: { ...this.state.game, users }, myId: undefined })
-        this.socket.emit('gameState', this.state.game)
+        this.setState({ game: { ...this.state.game, users }, myId: undefined }, () => {
+            const { game, round, hand } = this.state
+            this.socket.emit('gameState', { game, round, hand })
+        })
     }
 
     handleSit = (e: any, id: number) => {
@@ -194,25 +222,54 @@ class App extends React.Component<Props, State> {
         console.log('id', id)
         const { users } = this.state.game
         users[id].isOccupied = true
-        const name = prompt("What's your name?", 'name')
-        users[id].name = name
-        this.setState({ game: { ...this.state.game, users }, myId: id })
-        this.socket.emit('gameState', this.state.game)
+        let name = prompt("What's your name?", 'name')
+        users[id].name = name ? name : ''
+        this.setState({ game: { ...this.state.game, users }, myId: id }, () => {
+            const { game, round, hand } = this.state
+            this.socket.emit('gameState', { game, round, hand })
+        })
     }
 
     handleStartGame = () => {
+        // remove unused seats
         const users = this.state.game.users.filter((user) => user.isOccupied)
-        this.setState({ game: { ...this.state.game, users } }, () => {
-            this.socket.emit('gameState', this.state.game)
+        // determine inital dealer randomly
+        const dealerIndex = Math.floor(Math.random() * users.length)
+        const dealerId = users[dealerIndex].id
+        const roundOrder = getRoundOrder(users, dealerIndex)
+        const activeUser = roundOrder[0]
+        const roundState = RoundState.bidding
 
-            const dealerIndex = Math.floor(Math.random() * this.state.game.users.length)
-            const dealerId = this.state.game.users[dealerIndex].id
-
-            console.log('dealerId', dealerId)
-            this.setState({ game: { ...this.state.game, dealerId } }, () => {
-                this.socket.emit('gameState', this.state.game)
-            })
+        this.setState({ game: { ...this.state.game, activeUser, users }, round: { ...this.state.round, dealerId, roundOrder, state: roundState } }, () => {
+            const { game, round, hand } = this.state
+            // emit dealer to others
+            this.socket.emit('gameState', { game, round, hand })
         })
+    }
+
+    handleBid = (bid: number, userId: number) => {
+        let { bids, state } = this.state.round
+        bids.push({ userId, bid })
+        const nextPlayer = this.getNextPlayerIndex(userId)
+        let activeUser
+        if (nextPlayer === undefined) {
+            // bidding is over. Let's start playing
+            activeUser = this.state.round.roundOrder[0]
+            state = RoundState.playing
+        } else {
+            // setting next player
+            activeUser = this.state.round.roundOrder[nextPlayer]
+        }
+        this.setState({ game: { ...this.state.game, activeUser }, round: { ...this.state.round, bids, state } }, () => {
+            const { game, round, hand } = this.state
+            this.socket.emit('gameState', { game, round, hand })
+        })
+    }
+
+    getNextPlayerIndex = (currentPlayerId: number): number | undefined => {
+        let playerIndex = this.state.round.roundOrder.findIndex((id) => id === currentPlayerId)
+        playerIndex++
+        return playerIndex >= this.state.round.roundOrder.length ? undefined : playerIndex
     }
 
     handlePlayCard = (e: any, card: Card, userId?: number) => {
@@ -221,53 +278,144 @@ class App extends React.Component<Props, State> {
             console.log('no userId provided')
             return
         }
-        const currentHand = [...this.state.game.currentHand]
-        currentHand.push({ card, userId })
+
+        const nextPlayer = this.getNextPlayerIndex(userId)
+        const { cards } = this.state.hand
+        const { trumpCard, hands } = this.state.round
+        cards.push({ ...card, userId })
+        const { users } = this.state.game
+        // remove card from user state
+        const newUsers = users.map((user) => {
+            if (user.id === userId) {
+                user.cards.splice(
+                    user.cards.findIndex((c: Card) => c.suit === card.suit && c.rank === card.rank),
+                    1,
+                )
+                return user
+            }
+            return user
+        })
         const playingArea = document.getElementById('playingArea')?.getBoundingClientRect() as DOMRect
         const x = playingArea.left - 200 + Math.random() * 400
         const y = playingArea.top - 200 + Math.random() * 400
-        this.setState({ game: { ...this.state.game, currentHand } }, () => {
-            const message = { card, userId, game: this.state.game, x, y }
-            this.socket.emit('playCard', message)
-            this.socketHandlePlayCard(message)
+        this.setState(
+            { game: { ...this.state.game, users: newUsers, activeUser: nextPlayer }, round: { ...this.state.round, hands, trumpCard }, hand: { cards } },
+            () => {
+                const { game, round, hand } = this.state
+                const zIndex = this.state.hand.cards.length
+                const side = 'front'
+                const rot = Math.random() * 720
+                const message: PlayCardsMessage = { cards: [card], game, round, hand, x, y, zIndex, side, rot }
+                this.socket.emit('playCards', message)
+                // handling the animation of playing the card, which is done on socket emit (which won't be triggered for the user)
+                this.socketHandlePlayCard(message)
+                if (!nextPlayer) {
+                    return this.playNextHand()
+                } else {
+                    // more players to play
+                }
+            },
+        )
+    }
+
+    playNextHand = () => {
+        const { cards } = this.state.hand
+        const { trumpCard, hands } = this.state.round
+        // hand is over, time to get winner and start next hand
+        const cardLed = cards[0]
+        const winner = getHandResult(cards[0], trumpCard!.suit, cards, true, false)
+        hands.push({
+            cardLed,
+            winnerId: winner.userId,
+            cards,
         })
+        const activeUser = winner.userId
+
+        this.setState(
+            {
+                game: { ...this.state.game, activeUser },
+                round: { ...this.state.round, hands },
+                hand: { cardLed: undefined, cards: [], winnerId: undefined },
+            },
+            () => {
+                const { game, round, hand } = this.state
+                const side = 'back'
+                const x = 1000
+                const y = 1000
+
+                const message: PlayCardsMessage = { game, round, hand, side, x, y, cards }
+                this.socket.emit('playCards', message)
+                this.socketHandlePlayCard(message)
+            },
+        )
+        // reset game state/animate playing cards
+        //  set new game
     }
 
     render() {
-        const users = this.state.game.users.map(({ name, x, y, isOccupied, id }) => (
-            <User
-                name={name}
-                x={x}
-                y={y}
-                isOccupied={isOccupied}
-                onLeave={(e) => this.handleLeave(e, id)}
-                onSit={(e) => this.handleSit(e, id)}
-                isMe={id === this.state.myId}
-                canOccupy={this.state.myId === undefined}
-                isDealer={this.state.game.dealerId !== undefined && this.state.game.dealerId === id}
-            />
-        ))
+        const users = this.state.game.users.map(({ name, x, y, isOccupied, id }) => {
+            const { cards } = this.state.hand
+            const { activeUser } = this.state.game
+            const isPlayerTurn = activeUser !== undefined && activeUser === id
+            const playedCard = cards.find((card) => card.userId === id)
+            return (
+                <User
+                    name={name}
+                    x={x}
+                    y={y}
+                    isPlayerTurn={isPlayerTurn}
+                    isOccupied={isOccupied}
+                    onLeave={(e) => this.handleLeave(e, id)}
+                    onSit={(e) => this.handleSit(e, id)}
+                    isMe={id === this.state.myId}
+                    canOccupy={this.state.myId === undefined}
+                    isDealer={this.state.round.dealerId !== undefined && this.state.round.dealerId === id}
+                    playedCard={playedCard}
+                    roundState={this.state.round.state}
+                    handsWon={this.state.round.hands.filter((hand) => hand.winnerId === id).length}
+                />
+            )
+        })
         const withTrump = this.state.game.withTrump ? 'with trump' : 'no trump'
-        const dealerAssigned = this.state.game.dealerId !== undefined
-        const amDealer = dealerAssigned && this.state.game.dealerId === this.state.myId
-        console.log('myId', this.state.myId)
-        console.log('dealerId', this.state.game.dealerId)
+        const dealerAssigned = this.state.round.dealerId !== undefined
+        const amDealer = dealerAssigned && this.state.round.dealerId === this.state.myId
 
-        const myCards = this.state.myId !== undefined ? this.state.game.users.find((user) => user.id === this.state.myId).cards : []
+        console.log('myId', this.state.myId)
+        console.log('dealerId', this.state.round.dealerId)
+
+        const me = this.state.game.users.find((user) => user.id === this.state.myId)
+        const myCards = me !== undefined ? me.cards : []
         return (
             <div id="game">
                 {!dealerAssigned && <button onClick={this.handleStartGame}>Start Game</button>}
                 {amDealer && (
                     <div>
-                        <button onClick={this.deal}>Deal</button>
-                        <button onClick={this.resetDeck}>Shuffle</button>
+                        <button onClick={this.asyncDeal}>Deal</button>
+                        <button
+                            onClick={() => {
+                                this.clearDeck()
+                                this.initiateDeck()
+                                this.shuffle()
+                            }}
+                        >
+                            Shuffle
+                        </button>
                     </div>
                 )}
                 <span>{`  Round ${this.state.game.round} ${withTrump}`}</span>
                 <div id="users">{users}</div>
                 <div id="table"></div>
                 <div id="playingArea"></div>
-                <UserHand cards={myCards} isPlayerTurn canReneg onPlayCard={this.handlePlayCard} id={this.state.myId} />
+                <UserHand
+                    cards={myCards}
+                    isPlayerTurn={this.state.game.activeUser !== undefined && this.state.game.activeUser === this.state.myId}
+                    canReneg
+                    onPlayCard={this.handlePlayCard}
+                    id={this.state.myId}
+                    maxBid={this.state.game.round}
+                    onBid={this.handleBid}
+                    roundState={this.state.round.state}
+                />
             </div>
         )
     }

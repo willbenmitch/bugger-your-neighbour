@@ -34,9 +34,9 @@ io.on('connection', (socket) => {
         socket.broadcast.emit('deal', msg)
     })
 
-    socket.on('playCard', (msg) => {
-        console.log('playCard state', msg)
-        socket.broadcast.emit('playCard', msg)
+    socket.on('playCards', (msg) => {
+        console.log('playCards state', msg)
+        socket.broadcast.emit('playCards', msg)
     })
 })
 
