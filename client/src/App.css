@@ -1,3 +1,11 @@
+.button {
+    padding: 2em 1em;
+}
+
+.p {
+    font-size: small;
+}
+
 #table {
     position: fixed;
     top: 15%;

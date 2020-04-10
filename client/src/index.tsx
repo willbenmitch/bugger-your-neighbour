@@ -4,6 +4,14 @@ import './index.css'
 import App from './App'
 import * as serviceWorker from './serviceWorker'
 
+if (!Array.prototype.hasOwnProperty('last')) {
+    Object.defineProperty(Array.prototype, 'last', {
+        get() {
+            return this[this.length - 1]
+        },
+    })
+}
+
 ReactDOM.render(
     <React.StrictMode>
         <App />

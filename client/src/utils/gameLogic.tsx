@@ -27,17 +27,21 @@ const getHighestTrumpCard = (trump: number, hand: Card[], isAceHigh: boolean, in
     return rightBower ? rightBower : leftBower ? leftBower : highestCard
 }
 
-export const getHandResult = (ledCard: Card, trump: number, hand: UserCard[], isAceHigh: boolean = true, includeBowers: boolean = false): UserCard => {
+export const getHandResult = (ledCard: Card, hand: UserCard[], trump?: number, isAceHigh: boolean = true, includeBowers: boolean = false): UserCard => {
     // hand into 2 arrays: trump & ledSuit
     // need to include bowers (bauers)
-    const trumps = hand.filter((card) => isTrump(trump, card))
+    const trumps = !trump ? [] : hand.filter((card) => isTrump(trump, card))
     const ledSuit = hand.filter((card) => card.suit === ledCard.suit)
 
     // if trump array is not empty, return highest UserCard
-    if (trumps.length !== 0) {
+    if (trump && trumps.length !== 0) {
         return getHighestTrumpCard(trump, trumps, isAceHigh, includeBowers) as UserCard
     }
 
     // else return highest of ledSuit array
     return getHighestCard(ledSuit, isAceHigh) as UserCard
+}
+
+export const calculatePoints = (bid: number, actual: number) => {
+    return bid === actual ? 10 + bid : 0
 }

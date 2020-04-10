@@ -24,21 +24,23 @@ type State = {}
 
 class User extends React.Component<Props, State> {
     render() {
-        const { name, y, x, isOccupied, onLeave, onSit, isMe, canOccupy, isDealer, roundState, playedCard, isPlayerTurn, handsWon } = this.props
+        const { name, y, x, isOccupied, onLeave, onSit, isMe, canOccupy, isDealer, roundState, playedCard, isPlayerTurn, handsWon, myBid } = this.props
         const occupied = isOccupied ? isMe ? <button onClick={onLeave}>Leave</button> : null : canOccupy ? <button onClick={onSit}>Sit</button> : null
         const dealer = isDealer ? <p>Dealer</p> : null
         const bidding = !isPlayerTurn ? null : roundState === RoundState.bidding ? <p>Bidding</p> : null
         const playing = !isPlayerTurn ? null : roundState === RoundState.playing ? <p>Playing</p> : null
         const cardPlayed = playedCard ? <p>{`${rankMap(playedCard.rank)} of ${suitMap(playedCard.suit)}`}</p> : null
-        const wonHands = roundState === RoundState.playing ? <p>Hands won: {handsWon}</p> : null
+        const bidHands = myBid ? <p>Bid: {myBid}</p> : null
+        const wonHands = roundState === RoundState.playing ? <p>Won: {handsWon}</p> : null
         return (
             <div style={{ position: 'absolute', top: `${y}vh`, right: `${x}vw`, width: '10vh', height: '10vh' }}>
-                <p>{name}</p>
+                <h3>{name}</h3>
                 {occupied}
                 {dealer}
                 {bidding}
                 {playing}
                 {cardPlayed}
+                {bidHands}
                 {wonHands}
             </div>
         )
