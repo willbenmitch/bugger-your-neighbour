@@ -1,10 +1,9 @@
 import { Player, RoundStructure } from '../components/types'
 
-export const getRoundOrder = (users: Player[], dealerIndex: number): number[] => {
+export const getRoundOrder = (users: Player[], firstPlayerIndex?: number): number[] => {
     const ids = users.map((user) => user.id).sort((a, b) => a - b)
 
     // if dealerIndex is last, we need to set to zero
-    const firstPlayerIndex = dealerIndex === users.length - 1 ? 0 : dealerIndex + 1
 
     // construct the playing order
     const secondHalf = ids.slice(0, firstPlayerIndex)
@@ -14,7 +13,7 @@ export const getRoundOrder = (users: Player[], dealerIndex: number): number[] =>
     return roundOrder
 }
 
-export const getDealerIndex = (users: Player[], previousDealerId: number): number => {
+export const getNextDealerIndex = (users: Player[], previousDealerId: number): number => {
     const index = users.findIndex((user) => user.id === previousDealerId)
 
     return index === users.length - 1 ? 0 : index + 1
@@ -28,7 +27,6 @@ export const getRoundsToPlay = (availableRounds: number): RoundStructure[] => {
         if (i >= availableRounds + 1) {
             // on the way down
             id = length - i
-            console.log('hit', id)
         }
 
         return {

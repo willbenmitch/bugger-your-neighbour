@@ -30,7 +30,7 @@ class User extends React.Component<Props, State> {
         const bidding = !isPlayerTurn ? null : roundState === RoundState.bidding ? <p>Bidding</p> : null
         const playing = !isPlayerTurn ? null : roundState === RoundState.playing ? <p>Playing</p> : null
         const cardPlayed = playedCard ? <p>{`${rankMap(playedCard.rank)} of ${suitMap(playedCard.suit)}`}</p> : null
-        const bidHands = myBid ? <p>Bid: {myBid}</p> : null
+        const bidHands = myBid !== undefined ? <p>Bid: {myBid}</p> : null
         const wonHands = roundState === RoundState.playing ? <p>Won: {handsWon}</p> : null
         return (
             <div style={{ position: 'absolute', top: `${y}vh`, right: `${x}vw`, width: '10vh', height: '10vh' }}>

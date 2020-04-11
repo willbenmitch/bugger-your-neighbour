@@ -51,7 +51,6 @@ class UserHand extends React.Component<Props, State> {
         }
         const hand = cards.map((card, i) => {
             const mod = i % 3
-            console.log(mod)
             let x
             switch (mod) {
                 case 0:
