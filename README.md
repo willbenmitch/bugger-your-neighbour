@@ -1,44 +1,51 @@
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+# Bugger Your Neighbour
 
-## Available Scripts
+_The Mitchell Family's favourite card game_
 
-In the project directory, you can run:
+## Installation
 
-### `npm start`
+```zsh
+git clone git@github.com:willbenmitch/bugger-your-neighbour.git bugger && cd bugger && npm install
+```
 
-Runs the app in the development mode.<br />
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+Then, in bugger/client/ directory, copy the file `.env.example` and create two new files:
 
-The page will reload if you make edits.<br />
-You will also see any lint errors in the console.
+`.env.development`
 
-### `npm test`
+`.env.production`
 
-Launches the test runner in the interactive watch mode.<br />
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## Running locally
 
-### `npm run build`
+### MacOS
 
-Builds the app for production to the `build` folder.<br />
-It correctly bundles React in production mode and optimizes the build for the best performance.
+From the top directory `bugger/`, simply run `npm run dev`. You may need to provide system access to `ttab`.
 
-The build is minified and the filenames include the hashes.<br />
-Your app is ready to be deployed!
+This command is currently supported for Terminal and iTerm2 only (through ttab). To specify one over the other, you can change your preference in `package.json` inside the `openTerminal` script.
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### Other platforms
 
-### `npm run eject`
+```
+cd server/ && npm run dev
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+cd ../client && npm run dev
+```
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+## Serving for distribution (via ngrok/localhost.run)
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+If you're on **MacOS**, from the top directory `bugger/`, run `npm run server`. This will open a new tab.
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+For other platforms, run `cd server/ && npm run start`
 
-## Learn More
+In both platforms, you'll next need to look on your console for an output url, such as `https://4ebfebe3.ngrok.io`, copy this url, and paste it in your client's production environment file: `.env.production`.
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+Then, you're on **MacOS**, from the top directory `bugger/`, run `npm run client`. This will open a new tab.
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+For other platforms, run `cd ../client/ && npm run start`
+
+In both cases, you'll next need to look on your console for an output url, ending in `localhost.run` (such as `https://willbenmitch-cfcfdbd1.localhost.run`), copy this url for distribution to your friends/family.
+
+## TODOs
+
+-   Add ability to create independant game rooms (spawning a new socket room)
+-   Add room authentication
+-   Deploy for general use

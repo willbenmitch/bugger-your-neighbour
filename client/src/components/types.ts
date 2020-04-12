@@ -19,6 +19,12 @@ export enum RoundState {
     complete = 'complete',
 }
 
+export enum GameState {
+    idle = 'idle',
+    playing = 'playing',
+    complete = 'complete',
+}
+
 export type UserCard = Card & {
     userId: number
 }
@@ -26,6 +32,14 @@ export type UserCard = Card & {
 export type Bid = {
     userId: number
     bid: number
+}
+
+export type Game = {
+    state: GameState
+    users: Player[]
+    activeUser?: number
+    roundsToPlay: RoundStructure[]
+    rounds: Round[]
 }
 
 export type Hand = {
@@ -50,4 +64,9 @@ export type Round = {
     bids: Bid[]
     hands: Hand[]
     results: Result[]
+}
+
+export type RoundStructure = {
+    id: number
+    withTrump: boolean
 }

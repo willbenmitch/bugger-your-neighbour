@@ -1,3 +1,11 @@
+.button {
+    padding: 2em 1em;
+}
+
+.p {
+    font-size: small;
+}
+
 #table {
     position: fixed;
     top: 15%;
@@ -17,10 +25,10 @@
 
 #playingArea {
     position: fixed;
-    top: 35%;
+    top: 25%;
     left: 25%;
-    width: 25%;
-    height: 25%;
+    width: 35%;
+    height: 35%;
     /* border: 5px solid black; */
     /* border-radius: 50%; */
 }
