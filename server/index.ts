@@ -20,8 +20,6 @@ io.origins((origin: any, callback: any) => {
     callback(null, true)
 })
 
-const { NODE_ENV } = process.env
-
 let gameState: { game: Game; round: Round; hand: Hand } | undefined = undefined
 let users = 0
 let pingedIds: number[] = []
@@ -101,15 +99,5 @@ const startServer = () => {
         console.log(`listening on *:${PORT}`)
     })
 }
-
-// if (NODE_ENV === 'production') {
-// TODO: add PORT to ngrok.connect method
-// ngrok.connect().then((url) => {
-//     console.info(url)
-//     startServer()
-// })
-// } else {
-
-// }
 
 startServer()
