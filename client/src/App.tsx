@@ -34,8 +34,8 @@ type State = {
     showResults: boolean
 }
 
-type GameStateMessage = { game: Game; round: Round; hand: Hand }
-type PlayCardsMessage = GameStateMessage & {
+export type GameStateMessage = { game: Game; round: Round; hand: Hand }
+export type PlayCardsMessage = GameStateMessage & {
     cards: Card[]
     x: number
     y: number
@@ -82,20 +82,41 @@ class App extends React.Component<Props, State> {
 
     componentDidMount() {
         this.socket = io(process.env.REACT_APP_SERVER_URL)
+        this.socket.on('welcome', (msg: GameStateMessage) => {
+            console.log('welcome!')
+            this.initiateDeck()
+            const callback = () => {
+                const { cards } = this.state.hand
+                const { trumpCard } = this.state.round
+                if (trumpCard !== undefined) {
+                    this.animateTrumpCard(trumpCard)
+                }
+                if (cards.length !== 0) {
+                    cards.forEach((card) => {
+                        const playCardsMessage = this.getPlayCardsMessage(card)
+                        this.socketHandlePlayCard(playCardsMessage)
+                    })
+                }
+            }
+
+            this.socketHandleGameState(msg, callback)
+        })
         this.socket.on('deal', this.socketHandleDeal)
         this.socket.on('playCards', this.socketHandlePlayCard)
         this.socket.on('gameState', this.socketHandleGameState)
         this.socket.on('showResults', (msg: GameStateMessage) => {
             this.setState({ ...msg }, this.handleOpenResults)
         })
+        this.socket.on('pingClient', (msg: any) => {
+            this.socket.emit('pongServer', { id: this.state.myId })
+        })
     }
 
     socketHandleDeal = (msg: GameStateMessage) => {
         const { game, round, hand } = msg
         this.setState({ game, round, hand }, () => {
-            this.deck = undefined
-            this.deck = Deck()
-            this.deck.mount(document.getElementById('table'))
+            this.clearDeck()
+            this.initiateDeck()
             this.animateDeal()
         })
     }
@@ -119,9 +140,9 @@ class App extends React.Component<Props, State> {
         })
     }
 
-    socketHandleGameState = (msg: GameStateMessage) => {
+    socketHandleGameState = (msg: GameStateMessage, callback?: () => void) => {
         const { game, round, hand } = msg
-        this.setState({ game, round, hand })
+        this.setState({ game, round, hand }, callback)
     }
 
     asyncDeal = () => {
@@ -171,11 +192,16 @@ class App extends React.Component<Props, State> {
                 })
             })
         })
-        const trumpCard = this.deck.cards.find((c: any) => c.rank === this.state.round.trumpCard?.rank && c.suit === this.state.round.trumpCard?.suit)
-        if (trumpCard) {
-            trumpCard.animateTo({ delay: 500, x: 120 })
-            trumpCard.setSide('front')
+        const { trumpCard } = this.state.round
+        if (trumpCard !== undefined) {
+            this.animateTrumpCard(trumpCard)
         }
+    }
+
+    animateTrumpCard = (card: Card) => {
+        const trumpCard = this.deck.cards.find((c: any) => c.rank === this.state.round.trumpCard?.rank && c.suit === this.state.round.trumpCard?.suit)
+        trumpCard.animateTo({ delay: 500, x: 120 })
+        trumpCard.setSide('front')
     }
 
     initiateDeck = () => {
@@ -218,12 +244,15 @@ class App extends React.Component<Props, State> {
     handleSit = (e: any, id: number) => {
         e.preventDefault()
         const { users } = this.state.game
-        users[id].isOccupied = true
+        const user = users.find((u) => u.id === id)
+        if (user === undefined) return alert('Could not find seat.')
+        user.isOccupied = true
         let name = prompt("What's your name?", 'name')
-        const foundName = users.find((user) => user.name === name)
+        const foundName = users.find((u) => u.name === name)
         if (foundName !== undefined) return alert('That name is taken, please choose another')
-        users[id].name = name ? name : ''
-        this.setState({ game: { ...this.state.game, users }, myId: id }, () => {
+        user.name = name ? name : `Default_${id}`
+        const newUsers = users.map((u) => (u.id === id ? user : u))
+        this.setState({ game: { ...this.state.game, users: newUsers }, myId: id }, () => {
             const { game, round, hand } = this.state
             this.socket.emit('gameState', { game, round, hand })
         })
@@ -307,9 +336,6 @@ class App extends React.Component<Props, State> {
             }
             return user
         })
-        const playingArea = document.getElementById('playingArea')?.getBoundingClientRect() as DOMRect
-        const x = playingArea.left - 200 + Math.random() * (this.clientWidth() * 0.3)
-        const y = playingArea.top - 200 + Math.random() * (this.clientHeight() * 0.3)
         this.setState(
             {
                 game: { ...this.state.game, users: newUsers, activeUser: nextPlayer },
@@ -317,12 +343,8 @@ class App extends React.Component<Props, State> {
                 hand: { cards, cardLed: cards[0] },
             },
             () => {
-                const { game, round, hand } = this.state
                 const { activeUser } = this.state.game
-                const zIndex = this.state.hand.cards.length
-                const side = 'front'
-                const rot = Math.random() * 720
-                const message: PlayCardsMessage = { cards: [card], game, round, hand, x, y, zIndex, side, rot }
+                const message = this.getPlayCardsMessage(card)
                 this.socket.emit('playCards', message)
                 // handling the animation of playing the card, which is done on socket emit (which won't be triggered for the user)
                 this.socketHandlePlayCard(message)
@@ -331,6 +353,18 @@ class App extends React.Component<Props, State> {
                 }
             },
         )
+    }
+
+    getPlayCardsMessage = (card: Card): PlayCardsMessage => {
+        const { game, round, hand } = this.state
+        const playingArea = document.getElementById('playingArea')?.getBoundingClientRect() as DOMRect
+        const x = playingArea.left - 200 + Math.random() * (this.clientWidth() * 0.3)
+        const y = playingArea.top - 200 + Math.random() * (this.clientHeight() * 0.3)
+        const zIndex = this.state.hand.cards.length
+        const side = 'front'
+        const rot = Math.random() * 720
+        const message: PlayCardsMessage = { cards: [card], game, round, hand, x, y, zIndex, side, rot }
+        return message
     }
 
     playNextHand = () => {
@@ -475,7 +509,7 @@ class App extends React.Component<Props, State> {
                     onLeave={(e) => this.handleLeave(e, id)}
                     onSit={(e) => this.handleSit(e, id)}
                     isMe={id === this.state.myId}
-                    canOccupy={this.state.myId === undefined}
+                    canOccupy={!isOccupied && this.state.myId === undefined}
                     isDealer={this.state.round.dealerId !== undefined && this.state.round.dealerId === id}
                     playedCard={playedCard}
                     roundState={this.state.round.state}

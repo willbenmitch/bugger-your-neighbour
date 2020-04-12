@@ -8,13 +8,12 @@
         "allowSyntheticDefaultImports": true,
         "strict": true,
         "forceConsistentCasingInFileNames": true,
-        "module": "esnext",
+        "module": "commonjs",
         "moduleResolution": "node",
         "resolveJsonModule": true,
-        "isolatedModules": true,
+        "isolatedModules": false,
         "noEmit": true,
         "jsx": "react"
     },
-    "include": ["client/src"],
-    "exclude": ["client/build"]
+    "include": ["index.ts"]
 }

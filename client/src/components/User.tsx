@@ -25,7 +25,7 @@ type State = {}
 class User extends React.Component<Props, State> {
     render() {
         const { name, y, x, isOccupied, onLeave, onSit, isMe, canOccupy, isDealer, roundState, playedCard, isPlayerTurn, handsWon, myBid } = this.props
-        const occupied = isOccupied ? isMe ? <button onClick={onLeave}>Leave</button> : null : canOccupy ? <button onClick={onSit}>Sit</button> : null
+        const occupied = isMe ? isOccupied ? <button onClick={onLeave}>Leave</button> : null : canOccupy ? <button onClick={onSit}>Sit</button> : null
         const dealer = isDealer ? <p>Dealer</p> : null
         const bidding = !isPlayerTurn ? null : roundState === RoundState.bidding ? <p>Bidding</p> : null
         const playing = !isPlayerTurn ? null : roundState === RoundState.playing ? <p>Playing</p> : null
