@@ -5,7 +5,7 @@
     "main": "''",
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
-        "postinstall": "npm-recursive-install",
+        "postinstall": "npm-recursive-install --skip-root",
         "openTerminal": "ttab -a Terminal",
         "dev": "npm run serverDev && npm run clientDev",
         "clientDev": "npm run openTerminal -- -d client/ npm run dev",
