@@ -111,7 +111,7 @@ function ResultsTable(props: ResultsTableProps) {
     const { users } = game
 
     const accumulator = users.reduce((a, c) => ({ ...a, [`points${c.id}`]: 0 }), { round: 'total' })
-    
+
     const userTotals = game.rounds.reduce(
         (a, c) => ({
             ...a,
@@ -122,7 +122,7 @@ function ResultsTable(props: ResultsTableProps) {
         }),
         accumulator,
     )
-    
+
     const data = game.rounds.map((r) => {
         const ret: any = { round: r.id }
         const userResults = r.results.map((result) => ({
@@ -139,7 +139,7 @@ function ResultsTable(props: ResultsTableProps) {
         total[key] = userTotals[key]
     })
     data.push(total)
-    
+
     const columns = React.useMemo(
         () => [
             {

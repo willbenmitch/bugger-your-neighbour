@@ -14,6 +14,7 @@ type Props = {
 }
 type State = { bid?: number }
 export const suitMap = (suit: number) => (suit === 0 ? 'spades' : suit === 1 ? 'hearts' : suit === 2 ? 'clubs' : suit === 3 ? 'diamonds' : 'joker')
+export const suitMapUnicode = (suit: number) => (suit === 0 ? '♠' : suit === 1 ? '♥' : suit === 2 ? '♣' : suit === 3 ? '♦' : 'joker')
 export const rankMap = (rank: number) => (rank === 0 ? 'ace' : rank === 11 ? 'jack' : rank === 12 ? 'queen' : rank === 13 ? 'king' : rank)
 
 class UserHand extends React.Component<Props, State> {

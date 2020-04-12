@@ -21,16 +21,24 @@ export const getNextDealerIndex = (users: Player[], previousDealerId: number): n
 
 export const getRoundsToPlay = (availableRounds: number): RoundStructure[] => {
     const length = availableRounds * 2 + 1
+    const middleIndex = Math.ceil(length / 2)
+
     return Array.from({ length }, (_, i) => {
-        let id = i + 1
-        const withTrump = id !== availableRounds + 1
-        if (i >= availableRounds + 1) {
+        const id = i + 1
+        let cardsToDeal
+        const withTrump = id !== middleIndex
+        if (id < middleIndex) {
+            cardsToDeal = id
+        } else if (id === middleIndex) {
+            cardsToDeal = id - 1
+        } else {
             // on the way down
-            id = length - i
+            cardsToDeal = length - i
         }
 
         return {
             id,
+            cardsToDeal,
             withTrump,
         }
     })
