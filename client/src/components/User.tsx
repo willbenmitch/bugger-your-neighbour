@@ -1,6 +1,6 @@
 import React from 'react'
 import { Card, RoundState } from './types'
-import { rankMap, suitMap } from './UserHand'
+import { rankMap, suitMap, suitMapUnicode } from './UserHand'
 
 type Props = {
     name: string
@@ -29,7 +29,7 @@ class User extends React.Component<Props, State> {
         const dealer = isDealer ? <p>Dealer</p> : null
         const bidding = !isPlayerTurn ? null : roundState === RoundState.bidding ? <p>Bidding</p> : null
         const playing = !isPlayerTurn ? null : roundState === RoundState.playing ? <p>Playing</p> : null
-        const cardPlayed = playedCard ? <p>{`${rankMap(playedCard.rank)} of ${suitMap(playedCard.suit)}`}</p> : null
+        const cardPlayed = playedCard ? <p>{`${rankMap(playedCard.rank)} ${suitMapUnicode(playedCard.suit)}`}</p> : null
         const bidHands = myBid !== undefined ? <p>Bid: {myBid}</p> : null
         const wonHands = roundState === RoundState.playing ? <p>Won: {handsWon}</p> : null
         return (

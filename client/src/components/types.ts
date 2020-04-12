@@ -57,6 +57,7 @@ export type Result = {
 
 export type Round = {
     id: number
+    cardsToDeal: number
     dealerId?: number
     roundOrder: number[]
     state: RoundState
@@ -68,5 +69,6 @@ export type Round = {
 
 export type RoundStructure = {
     id: number
+    cardsToDeal: number
     withTrump: boolean
 }
