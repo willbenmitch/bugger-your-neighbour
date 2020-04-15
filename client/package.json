@@ -29,9 +29,9 @@
         "build": "react-scripts build",
         "test": "react-scripts test",
         "eject": "react-scripts eject",
-        "distribute": "ssh -R 80:localhost:5000 ssh.localhost.run",
+        "distribute": "ngrok http 5000",
         "serve": "serve -s build",
-        "start": "npm run build && npm run serve & npm run distribute"
+        "start": "npm run build && npm run distribute & npm run serve"
     },
     "eslintConfig": {
         "extends": "react-app"

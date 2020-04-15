@@ -20,8 +20,12 @@ const isTrump = (trump: number, card: Card, includeBowers: boolean = true): bool
 }
 
 const getHighestTrumpCard = (trump: number, hand: Card[], isAceHigh: boolean, includeBowers: boolean): Card => {
-    const rightBower = hand.find((card) => card.rank === 11 && card.suit === trump)
-    const leftBower = hand.find((card) => card.rank === 11 && isOppositeSuit(trump, card.suit))
+    let leftBower,
+        rightBower = undefined
+    if (includeBowers) {
+        rightBower = hand.find((card) => card.rank === 11 && card.suit === trump)
+        leftBower = hand.find((card) => card.rank === 11 && isOppositeSuit(trump, card.suit))
+    }
     const highestCard = getHighestCard(hand, isAceHigh)
 
     return rightBower ? rightBower : leftBower ? leftBower : highestCard
@@ -30,16 +34,19 @@ const getHighestTrumpCard = (trump: number, hand: Card[], isAceHigh: boolean, in
 export const getHandResult = (ledCard: Card, hand: UserCard[], trump?: number, isAceHigh: boolean = true, includeBowers: boolean = false): UserCard => {
     // hand into 2 arrays: trump & ledSuit
     // need to include bowers (bauers)
-    const trumps = trump === undefined ? [] : hand.filter((card) => isTrump(trump, card))
+    const trumps = trump === undefined ? [] : hand.filter((card) => isTrump(trump, card, includeBowers))
     const ledSuit = hand.filter((card) => card.suit === ledCard.suit)
 
-    // if trump array is not empty, return highest UserCard
+    let highest
     if (trump !== undefined && trumps.length !== 0) {
-        return getHighestTrumpCard(trump, trumps, isAceHigh, includeBowers) as UserCard
+        // if trump array is not empty, return highest UserCard in trumps array
+        highest = getHighestTrumpCard(trump, trumps, isAceHigh, includeBowers) as UserCard
+    } else {
+        // else return highest of ledSuit array
+        highest = getHighestCard(ledSuit, isAceHigh) as UserCard
     }
 
-    // else return highest of ledSuit array
-    return getHighestCard(ledSuit, isAceHigh) as UserCard
+    return highest
 }
 
 export const calculatePoints = (bid: number, actual: number) => {
