@@ -30,7 +30,7 @@ cd server/ && npm run dev
 cd ../client && npm run dev
 ```
 
-## Serving for distribution (via ngrok/localhost.run)
+## Serving for distribution (via ngrok)
 
 If you're on **MacOS**, from the top directory `bugger/`, run `npm run server`. This will open a new tab.
 
@@ -42,7 +42,7 @@ Then, you're on **MacOS**, from the top directory `bugger/`, run `npm run client
 
 For other platforms, run `cd ../client/ && npm run start`
 
-In both cases, you'll next need to look on your console for an output url, ending in `localhost.run` (such as `https://willbenmitch-cfcfdbd1.localhost.run`), copy this url for distribution to your friends/family.
+In both cases, you'll next need to look on your console for an output url, ending in `.ngrok.io` (note that this will be different than the url output for the server). Copy this url to share with your players.
 
 ## TODOs
 

@@ -317,7 +317,6 @@ class App extends React.Component<Props, State> {
         }
         const { users } = this.state.game
         const { cards, cardLed } = this.state.hand
-        const { trumpCard, hands } = this.state.round
         const userHand = users.find((u) => u.id === userId)!.cards
         const isCardValid = didFollowSuit(card, userHand, cardLed)
 
@@ -346,7 +345,7 @@ class App extends React.Component<Props, State> {
         this.setState(
             {
                 game: { ...this.state.game, users: newUsers, activeUser: nextPlayer },
-                round: { ...this.state.round, hands, trumpCard },
+                round: { ...this.state.round },
                 hand: { cards, cardLed: cards[0] },
             },
             () => {
@@ -376,11 +375,13 @@ class App extends React.Component<Props, State> {
 
     playNextHand = () => {
         const { users } = this.state.game
-        const { cards } = this.state.hand
+        const { cards, cardLed } = this.state.hand
         const { trumpCard, hands } = this.state.round
         // hand is over, time to get winner and start next hand
-        const cardLed = cards[0]
-        const winner = getHandResult(cards[0], cards, trumpCard?.suit, true, false)
+        if (cardLed === undefined) return alert('Could not find led card')
+
+        const winner = getHandResult(cardLed, cards, trumpCard?.suit, true, false)
+
         if (winner === undefined) {
             console.error('winner is undefined')
             console.error('cardLed', cardLed)
@@ -402,7 +403,7 @@ class App extends React.Component<Props, State> {
             this.setState(
                 {
                     game: { ...this.state.game, activeUser },
-                    round: { ...this.state.round, hands },
+                    round: { ...this.state.round, hands, roundOrder },
                     hand: { cardLed: undefined, cards: [], winnerId: undefined },
                 },
                 () => {
@@ -425,8 +426,6 @@ class App extends React.Component<Props, State> {
                 },
             )
         }, 5000)
-        // reset game state/animate playing cards
-        //  set new game
     }
 
     playNextRound = () => {
