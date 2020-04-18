@@ -364,8 +364,8 @@ class App extends React.Component<Props, State> {
     getPlayCardsMessage = (card: Card): PlayCardsMessage => {
         const { game, round, hand } = this.state
         const playingArea = document.getElementById('playingArea')?.getBoundingClientRect() as DOMRect
-        const x = playingArea.left - 200 + Math.random() * (this.clientWidth() * 0.3)
-        const y = playingArea.top - 200 + Math.random() * (this.clientHeight() * 0.3)
+        const x = playingArea.left - 100 + Math.random() * (this.clientWidth() * 0.3)
+        const y = playingArea.top - 100 + Math.random() * (this.clientHeight() * 0.3)
         const zIndex = this.state.hand.cards.length
         const side = 'front'
         const rot = Math.random() * 720
