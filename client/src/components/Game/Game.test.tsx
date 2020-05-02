@@ -1,7 +1,7 @@
 import React from 'react'
-import { Player, Card, UserCard } from './components/types'
-import { getRoundOrder } from './utils/getRoundOrder'
-import { getHandResult } from './utils/gameLogic'
+import { Player, Card, UserCard } from '../types'
+import { getRoundOrder } from '../../utils/getRoundOrder'
+import { getHandResult } from '../../utils/gameLogic'
 
 test('gets correct round order', () => {
     const players = [{ id: 1 }, { id: 7 }] as Player[]

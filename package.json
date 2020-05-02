@@ -26,5 +26,6 @@
     "dependencies": {
         "recursive-install": "^1.4.0",
         "ttab": "^0.6.1"
-    }
+    },
+    "devDependencies": {}
 }

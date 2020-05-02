@@ -3,7 +3,7 @@ const http = require('http')
 const socket = require('socket.io')
 const ngrok = require('ngrok')
 const cors = require('cors')
-import { GameStateMessage, PlayCardsMessage } from '../client/src/App'
+import { GameStateMessage, PlayCardsMessage } from '../client/src//components/Game/Game'
 import { GameState, Game, Round, Hand } from '../client/src/components/types'
 console.log(GameState.idle)
 
