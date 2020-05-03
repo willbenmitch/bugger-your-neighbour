@@ -40,6 +40,7 @@ export default Results
 
 const Styles = styled.div`
     padding: 1rem;
+    overflow: auto;
 
     table {
         border-spacing: 0;

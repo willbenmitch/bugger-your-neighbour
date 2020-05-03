@@ -14,48 +14,42 @@ export enum Routes {
     games = '/games',
 }
 
-const HandleJoinGame = () => {
-    const id = window.prompt('Enter the id for this game.')
-    if (!id) {
-        return <div></div>
-    }
-    return <div></div>
-}
-
-const Games = () => {
-    const { id } = useParams()
-    const match = useRouteMatch()
-    const history = useHistory()
-
-    console.log('params', id)
-    console.log('match', match)
-
-    if (!id) {
-        alert('No id provided, going home.')
-        history.push(Routes.home)
-    }
-    return (
-        <div>
-            <Switch></Switch>
-        </div>
-    )
-}
-
-const Home = () => {
-    const match = useRouteMatch()
+const Home = (props: any) => {
     const history = useHistory()
 
     const handleStartGame = () => {
         const gameId = uuidv4()
-        console.log('gameId', gameId)
         // TODO - create game room on server
         history.push(`${Routes.games}/${gameId}`)
+        const url = window.location.href
+        alert(`Copy this url to share with your players: ${url}`)
     }
-    console.log('home', match)
     return (
         <div id="app">
             <h1>Bugger Your Neighbour</h1>
             <button onClick={handleStartGame}>Start a New Game</button>
+        </div>
+    )
+}
+
+export const Footer = () => {
+    return (
+        <div style={{ position: 'absolute', width: '100%', bottom: 10, fontSize: 12 }}>
+            <div style={{ display: 'flex', flexDirection: 'row' }}>
+                <a style={{ paddingRight: 15 }} href="https://www.linkedin.com/in/willbenmitchell/" target="_blank" rel="noopener noreferrer">
+                    LinkedIn
+                </a>
+                <a style={{ paddingRight: 15 }} href="https://github.com/willbenmitch" target="_blank" rel="noopener noreferrer">
+                    GitHub
+                </a>
+                <a style={{ paddingRight: 15 }} href="https://twitter.com/WillBenMitchell" target="_blank" rel="noopener noreferrer">
+                    Twitter
+                </a>
+                <a style={{ paddingRight: 15 }} href="https://willbenmitch.com" target="_blank" rel="noopener noreferrer">
+                    Web
+                </a>
+                <p style={{ opacity: 0.6 }}>willbenmitch {new Date().getFullYear()}</p>
+            </div>
         </div>
     )
 }
@@ -68,11 +62,9 @@ const App = () => {
                     <Link to={Routes.home}>Home</Link>
                 </li>
             </ul>
-            <Switch>
-                <Route exact path={Routes.home} component={Home} />
-                <Route exact path={`${Routes.games}`} component={Games} />
-                <Route path={`${Routes.games}/:id`} component={Game} />
-            </Switch>
+            <Route exact path={Routes.home} render={(routeProps) => <Home key={new Date().getTime()} {...routeProps} />} />
+            <Route exact path={`${Routes.games}/:id`} render={(routeProps) => <Game key={new Date().getTime()} {...routeProps} />} />
+            <Footer />
         </Router>
     )
 }

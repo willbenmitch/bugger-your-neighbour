@@ -5,10 +5,12 @@
     "main": "index.ts",
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
-        "dev": "ts-node index.ts",
-        "server": "npm run dev",
+        "server": "ts-node index.ts",
+        "dev": "env NODE_ENV=development npm run server",
+        "prod": "env NODE_ENV=production npm run server",
         "distribute": "ngrok http 4000",
-        "start": "npm run distribute & npm run server"
+        "start": "npm run prod",
+        "clientBuild": "cd ../client/ && npm run build"
     },
     "author": "",
     "license": "ISC",

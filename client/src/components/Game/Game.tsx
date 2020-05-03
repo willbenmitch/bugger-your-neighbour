@@ -1,6 +1,6 @@
 import React from 'react'
+import _ from 'lodash'
 import './Game.css'
-// import '../node_modules/deck-of-cards/example/example.css'
 // @ts-ignore
 import io from 'socket.io-client'
 // @ts-ignore
@@ -11,7 +11,6 @@ import { Card, Player, Round, RoundState, Game as GameType, Hand, Result, GameSt
 import { getHandResult, calculatePoints, didFollowSuit } from '../../utils/gameLogic'
 import { getRoundOrder, getNextDealerIndex, getRoundsToPlay } from '../../utils/getRoundOrder'
 import Results from '../Results'
-import { useParams } from 'react-router-dom'
 
 const positions: Player[] = [
     { id: 0, isOccupied: false, name: 'Open', x: 58, y: 5, cards: [] },
@@ -71,15 +70,16 @@ const initialHand = {
     winnerId: undefined,
 }
 
+const getInitialState = (): State => ({
+    game: _.cloneDeep(initialGame),
+    round: _.cloneDeep(initialRound),
+    hand: _.cloneDeep(initialHand),
+    myId: undefined,
+    showResults: false,
+})
+
 class Game extends React.Component<Props, State> {
-    // @ts-ignore
-    state: State = {
-        game: initialGame,
-        round: initialRound,
-        hand: initialHand,
-        myId: undefined,
-        showResults: false,
-    }
+    state = getInitialState()
 
     deck: any
     socket: any
@@ -89,8 +89,9 @@ class Game extends React.Component<Props, State> {
     cardHeight = 100
 
     componentDidMount() {
-        console.log('props', this.props)
-        this.socket = io(process.env.REACT_APP_SERVER_URL)
+        // @ts-ignore
+        const { id: roomId } = this.props.match.params
+        this.socket = io(`${process.env.REACT_APP_SERVER_URL}?id=${roomId}`)
         this.socket.on('welcome', (msg: GameStateMessage) => {
             console.log('welcome!')
             this.initiateDeck()
@@ -117,8 +118,13 @@ class Game extends React.Component<Props, State> {
             this.setState({ ...msg }, this.handleOpenResults)
         })
         this.socket.on('pingClient', (msg: any) => {
-            this.socket.emit('pongServer', { id: this.state.myId })
+            this.socket.emit('pongServer', roomId, { id: this.state.myId })
         })
+    }
+
+    componentWillUnmount() {
+        this.socket.close()
+        this.deck = undefined
     }
 
     socketHandleDeal = (msg: GameStateMessage) => {
@@ -162,6 +168,8 @@ class Game extends React.Component<Props, State> {
     }
 
     deal = () => {
+        // @ts-ignore
+        const { id: roomId } = this.props.match.params
         const thisRound = this.state.game.roundsToPlay[0]
         const userLength = this.state.game.users.length
         const { users } = this.state.game
@@ -181,7 +189,7 @@ class Game extends React.Component<Props, State> {
         this.setState({ game: { ...this.state.game, users }, round: { ...this.state.round, trumpCard } }, () => {
             const { game, round, hand } = this.state
 
-            this.socket.emit('deal', { game, round, hand })
+            this.socket.emit('deal', roomId, { game, round, hand })
             this.socketHandleDeal({ game, round, hand })
         })
     }
@@ -241,17 +249,21 @@ class Game extends React.Component<Props, State> {
 
     handleLeave = (e: any, id: number) => {
         e.preventDefault()
+        // @ts-ignore
+        const { id: roomId } = this.props.match.params
         const { users } = this.state.game
         users[id].isOccupied = false
         users[id].name = 'Open'
         this.setState({ game: { ...this.state.game, users }, myId: undefined }, () => {
             const { game, round, hand } = this.state
-            this.socket.emit('gameState', { game, round, hand })
+            this.socket.emit('gameState', roomId, { game, round, hand })
         })
     }
 
     handleSit = (e: any, id: number) => {
         e.preventDefault()
+        // @ts-ignore
+        const { id: roomId } = this.props.match.params
         const { users } = this.state.game
         const user = users.find((u) => u.id === id)
         if (user === undefined) return alert('Could not find seat.')
@@ -263,7 +275,7 @@ class Game extends React.Component<Props, State> {
         const newUsers = users.map((u) => (u.id === id ? user : u))
         this.setState({ game: { ...this.state.game, users: newUsers }, myId: id }, () => {
             const { game, round, hand } = this.state
-            this.socket.emit('gameState', { game, round, hand })
+            this.socket.emit('gameState', roomId, { game, round, hand })
         })
     }
 
@@ -288,6 +300,8 @@ class Game extends React.Component<Props, State> {
 
     handleBid = (bid: number, userId: number) => {
         let { bids, state } = this.state.round
+        // @ts-ignore
+        const { id: roomId } = this.props.match.params
         bids.push({ userId, bid })
         const nextPlayer = this.getNextPlayerIndex(userId)
         let activeUser
@@ -301,7 +315,7 @@ class Game extends React.Component<Props, State> {
         }
         this.setState({ game: { ...this.state.game, activeUser }, round: { ...this.state.round, bids, state } }, () => {
             const { game, round, hand } = this.state
-            this.socket.emit('gameState', { game, round, hand })
+            this.socket.emit('gameState', roomId, { game, round, hand })
         })
     }
 
@@ -317,6 +331,8 @@ class Game extends React.Component<Props, State> {
             console.warn('no userId provided')
             return
         }
+        // @ts-ignore
+        const { id: roomId } = this.props.match.params
         const { users } = this.state.game
         const { cards, cardLed } = this.state.hand
         const userHand = users.find((u) => u.id === userId)!.cards
@@ -353,7 +369,7 @@ class Game extends React.Component<Props, State> {
             () => {
                 const { activeUser } = this.state.game
                 const message = this.getPlayCardsMessage(card)
-                this.socket.emit('playCards', message)
+                this.socket.emit('playCards', roomId, message)
                 // handling the animation of playing the card, which is done on socket emit (which won't be triggered for the user)
                 this.socketHandlePlayCard(message)
                 if (activeUser === undefined) {
@@ -379,6 +395,8 @@ class Game extends React.Component<Props, State> {
         const { users } = this.state.game
         const { cards, cardLed } = this.state.hand
         const { trumpCard, hands } = this.state.round
+        // @ts-ignore
+        const { id: roomId } = this.props.match.params
         // hand is over, time to get winner and start next hand
         if (cardLed === undefined) return alert('Could not find led card')
 
@@ -414,11 +432,11 @@ class Game extends React.Component<Props, State> {
                     const x = 1000
                     const y = 1000
                     // send results to users
-                    this.socket.emit('gameState', { game, round, hand })
+                    this.socket.emit('gameState', roomId, { game, round, hand })
 
                     const message: PlayCardsMessage = { game, round, hand, side, x, y, cards }
                     // wait five seconds to send message to start next round
-                    this.socket.emit('playCards', message)
+                    this.socket.emit('playCards', roomId, message)
                     this.socketHandlePlayCard(message)
                     // check to see if users have more cards
                     const usersWithCardsLeft = game.users.filter((user) => user.cards.length !== 0)
@@ -434,6 +452,8 @@ class Game extends React.Component<Props, State> {
         const { game, round } = this.state
         const { roundsToPlay, users, rounds } = game
         const { hands, bids } = round
+        // @ts-ignore
+        const { id: roomId } = this.props.match.params
         const userTotals = hands.reduce(
             (prev, cur: Hand) => {
                 return prev.map(({ total, id }) => (id === cur.winnerId ? { total: total + 1, id } : { total, id }))
@@ -452,7 +472,7 @@ class Game extends React.Component<Props, State> {
             const { game, round, hand } = this.state
             const { roundsToPlay, rounds } = game
             if (roundsToPlay.length === 0) {
-                this.socket.emit('showResults', { game: { ...game, state: GameState.complete }, round, hand })
+                this.socket.emit('showResults', roomId, { game: { ...game, state: GameState.complete }, round, hand })
                 this.setState({ showResults: true, game: { ...game, state: GameState.complete } })
             } else {
                 const { round: lastRound } = this.state
@@ -464,6 +484,8 @@ class Game extends React.Component<Props, State> {
     }
 
     startRound = (dealerIndex: number, id: number) => {
+        // @ts-ignore
+        const { id: roomId } = this.props.match.params
         const roundStructure = this.state.game.roundsToPlay.find((r) => r.id === id)
         if (roundStructure === undefined) return alert('Could not start round')
         const { users } = this.state.game
@@ -487,7 +509,7 @@ class Game extends React.Component<Props, State> {
         this.setState({ game: { ...this.state.game, activeUser }, round: newRound }, () => {
             const { game, round, hand } = this.state
             // emit dealer to others
-            this.socket.emit('gameState', { game, round, hand })
+            this.socket.emit('gameState', roomId, { game, round, hand })
             this.asyncDeal()
         })
     }
@@ -503,6 +525,8 @@ class Game extends React.Component<Props, State> {
     }
 
     resetGame = () => {
+        // @ts-ignore
+        const { id: roomId } = this.props.match.params
         const users = positions.map((position) => {
             const foundOccupied = this.state.game.users.find((user) => user.id === position.id)
             return foundOccupied ? foundOccupied : position
@@ -511,7 +535,7 @@ class Game extends React.Component<Props, State> {
         const state: State = { game: { ...initialGame, users }, round: initialRound, hand: initialHand, showResults: false }
         this.setState(state, () => {
             const { game, round, hand } = this.state
-            this.socket.emit('gameState', { game, round, hand })
+            this.socket.emit('gameState', roomId, { game, round, hand })
         })
     }
 
@@ -525,6 +549,7 @@ class Game extends React.Component<Props, State> {
             const myBid = this.state.round.bids.find((bid) => bid.userId === id)?.bid
             return (
                 <User
+                    key={`${id}-${new Date().getTime()}`}
                     name={name}
                     x={x}
                     y={y}
@@ -545,7 +570,8 @@ class Game extends React.Component<Props, State> {
         const withTrump = roundsToPlay.length === 0 ? '' : roundsToPlay[0].withTrump ? 'with trump' : 'no trump'
         const dealerAssigned = this.state.round.dealerId !== undefined
         const amDealer = dealerAssigned && this.state.round.dealerId === this.state.myId
-        const amAdmin = this.state.game.users[0].id === this.state.myId
+        const activeUsers = this.state.game.users.filter((user) => user.isOccupied).sort((a, b) => a.id - b.id)
+        const amAdmin = activeUsers.length > 0 && activeUsers[0].id === this.state.myId
 
         const me = this.state.game.users.find((user) => user.id === this.state.myId)
         const myCards = me !== undefined ? me.cards : []

@@ -1,0 +1,8 @@
+
+#!include:.gitignore
+
+# Included files and folders that are excluded during gitignore
+!**/build
+
+#Files
+**/README.md
