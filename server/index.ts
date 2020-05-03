@@ -110,7 +110,9 @@ const startServer = () => {
         const host = server.address().address
         const port = server.address().port
         let protocol = 'http'
-        protocol = 'https'
+        if (NODE_ENV === 'production') {
+            protocol = 'https'
+        }
         const REACT_APP_SERVER_URL = `${protocol}://${host}:${port}`
 
         console.log(`listening on ${REACT_APP_SERVER_URL}`)
