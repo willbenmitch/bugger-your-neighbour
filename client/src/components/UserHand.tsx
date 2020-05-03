@@ -15,7 +15,7 @@ type Props = {
 type State = { bid?: number }
 export const suitMap = (suit: number) => (suit === 0 ? 'spades' : suit === 1 ? 'hearts' : suit === 2 ? 'clubs' : suit === 3 ? 'diamonds' : 'joker')
 export const suitMapUnicode = (suit: number) => (suit === 0 ? '♠' : suit === 1 ? '♥' : suit === 2 ? '♣' : suit === 3 ? '♦' : 'joker')
-export const rankMap = (rank: number) => (rank === 0 ? 'ace' : rank === 11 ? 'jack' : rank === 12 ? 'queen' : rank === 13 ? 'king' : rank)
+export const rankMap = (rank: number) => (rank === 1 ? 'ace' : rank === 11 ? 'jack' : rank === 12 ? 'queen' : rank === 13 ? 'king' : rank)
 
 class UserHand extends React.Component<Props, State> {
     state: State = {
@@ -81,7 +81,7 @@ class UserHand extends React.Component<Props, State> {
             </div>
         )
         return (
-            <div style={{ position: 'absolute', top: `${0}vh`, right: `${0}vw`, width: '25vw', height: '100vh', border: '2px solid black' }}>
+            <div style={{ position: 'absolute', top: `${0}vh`, right: `${0}vw`, width: '25vw', height: '100vh', border: '2px solid black', overflow: 'auto' }}>
                 <h1>This is your hand</h1>
                 <div id="bid">{bidJSX}</div>
                 {bid && <p>{`Bid: ${bid}`}</p>}

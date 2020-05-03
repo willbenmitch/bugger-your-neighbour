@@ -5,13 +5,14 @@
     "main": "''",
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
-        "postinstall": "npm-recursive-install --skip-root",
+        "postinstall": "npm-recursive-install --rootDir=server",
         "openTerminal": "ttab -a Terminal",
         "dev": "npm run serverDev && npm run clientDev",
         "clientDev": "npm run openTerminal -- -d client/ npm run dev",
         "serverDev": "npm run openTerminal -- -d server/ npm run dev",
-        "server": "npm run openTerminal -- -d server/ npm run start",
-        "client": "npm run openTerminal -- -d client/ npm run start"
+        "server": "npm run openTerminal -- -d server/ npm run distribute & npm run prod",
+        "client": "npm run openTerminal -- -d client/ npm run start",
+        "start": "cd server/ && npm run start"
     },
     "repository": {
         "type": "git",
@@ -24,7 +25,12 @@
     },
     "homepage": "https://github.com/willbenmitch/bugger-your-neighbour#readme",
     "dependencies": {
-        "recursive-install": "^1.4.0",
+        "recursive-install": "^1.4.0"
+    },
+    "devDependencies": {
         "ttab": "^0.6.1"
+    },
+    "engines": {
+        "node": ">=12.16.1"
     }
 }

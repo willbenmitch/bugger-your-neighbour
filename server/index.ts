@@ -1,102 +1,121 @@
 const express = require('express')
 const http = require('http')
-const socket = require('socket.io')
-const ngrok = require('ngrok')
+const IOsocket = require('socket.io')
 const cors = require('cors')
-import { GameStateMessage, PlayCardsMessage } from '../client/src/App'
-import { GameState, Game, Round, Hand } from '../client/src/components/types'
-console.log(GameState.idle)
+const path = require('path')
+import { GameStateMessage, PlayCardsMessage } from '../client/src//components/Game/Game'
+import { Game, Round, Hand } from '../client/src/components/types'
+
+const indexFile = path.resolve(__dirname, '../client/build/index.html')
+const NODE_ENV = process.env.NODE_ENV
+const envFilPath = path.resolve(__dirname, `../client/.env.${NODE_ENV}`)
 
 const app = express()
 const corsOptions = {
     origin: '*',
     optionsSuccessStatus: 200,
+    credentials: true,
 }
 
 app.use(cors(corsOptions))
+app.use(express.static('../client/build'))
 const server = http.createServer(app)
-const io = socket(server)
+const io = IOsocket(server)
 io.origins((origin: any, callback: any) => {
     callback(null, true)
 })
 
-let gameState: { game: Game; round: Round; hand: Hand } | undefined = undefined
-let users = 0
-let pingedIds: number[] = []
+let gameState: { [id: string]: { game: Game; round: Round; hand: Hand } } = {}
+let pingedIds: { [id: string]: number[] } = {}
 
 const startServer = () => {
-    app.get('/', function (req: any, res: any) {
-        res.send('<h1>Hello world</h1>')
+    app.get('*', function (req: any, res: any) {
+        res.sendFile(indexFile)
     })
 
     io.on('connection', (socket: any) => {
-        console.log('a user connected')
-        users += 1
-        if (gameState) {
-            socket.emit('welcome', gameState)
+        const { id } = socket.handshake.query
+        console.log('a user connected', id)
+        if (!id) {
+            console.error('no ID provided')
+            return
+        }
+        socket.join(id)
+        if (gameState[id] !== undefined) {
+            socket.emit('welcome', gameState[id])
         }
         socket.on('disconnect', function () {
             console.log('user disconnected')
-            // reduce total number of users
-            socket.broadcast.emit('pingClient', { request: 'id' })
-            users -= 1
-            if (users === 0) {
-                // reset game state when everyone's left
-                gameState = undefined
-            }
+            socket.broadcast.to(id).emit('pingClient', { request: 'id' })
             setTimeout(() => {
-                if (!gameState) return
-                console.log('pinged', pingedIds)
-                const { game, round, hand } = gameState
-                gameState = {
-                    game: {
-                        ...game,
-                        users: game.users.map((user) => {
-                            return pingedIds.find((id) => id === user.id) !== undefined ? user : { ...user, isOccupied: false, name: 'Open' }
-                        }),
-                    },
-                    round,
-                    hand,
+                if (!gameState[id]) return
+                const { game, round, hand } = gameState[id]
+
+                if (!pingedIds[id]) {
+                    delete gameState[id]
+                    return
                 }
-                socket.broadcast.emit('gameState', gameState)
-                pingedIds = []
-            }, 5000)
+
+                try {
+                    gameState[id] = {
+                        game: {
+                            ...game,
+                            users: game.users.map((user) => {
+                                return pingedIds[id].find((userId) => userId === user.id) !== undefined ? user : { ...user, isOccupied: false, name: 'Open' }
+                            }),
+                        },
+                        round,
+                        hand,
+                    }
+                } catch (err) {
+                    console.error(err)
+                }
+                socket.broadcast.to(id).emit('gameState', gameState[id])
+                delete pingedIds[id]
+            }, 3000)
         })
 
-        socket.on('gameState', (msg: GameStateMessage) => {
-            console.log('game state', msg)
-            gameState = msg
-            socket.broadcast.emit('gameState', msg)
+        socket.on('gameState', (id: string, msg: GameStateMessage) => {
+            gameState[id] = msg
+            socket.broadcast.to(id).emit('gameState', msg)
         })
 
-        socket.on('deal', (msg: GameStateMessage) => {
-            console.log('deal state', msg)
-            gameState = msg
-            socket.broadcast.emit('deal', msg)
+        socket.on('deal', (id: string, msg: GameStateMessage) => {
+            gameState[id] = msg
+            socket.broadcast.to(id).emit('deal', msg)
         })
 
-        socket.on('playCards', (msg: PlayCardsMessage) => {
+        socket.on('playCards', (id: string, msg: PlayCardsMessage) => {
             const { game, hand, round } = msg
-            console.log('playCards state', msg)
-            gameState = { game, hand, round }
-            socket.broadcast.emit('playCards', msg)
+            gameState[id] = { game, hand, round }
+            socket.broadcast.to(id).emit('playCards', msg)
         })
 
-        socket.on('showResults', (msg: GameStateMessage) => {
-            console.log('showResults state', msg)
-            gameState = msg
-            socket.broadcast.emit('showResults', msg)
+        socket.on('showResults', (id: string, msg: GameStateMessage) => {
+            gameState[id] = msg
+            socket.broadcast.to(id).emit('showResults', msg)
         })
 
-        socket.on('pongServer', (msg: { id: number }) => {
-            console.log('pong state', msg)
-            pingedIds.push(msg.id)
+        socket.on('pongServer', (id: string, msg: { id: number }) => {
+            if (!pingedIds[id]) {
+                pingedIds[id] = [msg.id]
+            } else {
+                pingedIds[id].push(msg.id)
+            }
         })
     })
 
-    const PORT = 4000
+    const PORT = process.env.PORT || 4000
     server.listen(PORT, function () {
-        console.log(`listening on *:${PORT}`)
+        const host = server.address().address
+        const port = server.address().port
+        let protocol = 'http'
+        if (NODE_ENV === 'production') {
+            protocol = 'https'
+        }
+        const REACT_APP_SERVER_URL = `${protocol}://${host}:${port}`
+
+        console.log(`listening on ${REACT_APP_SERVER_URL}`)
     })
 }
 
