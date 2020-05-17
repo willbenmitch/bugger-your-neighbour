@@ -36,17 +36,11 @@ export const Footer = () => {
     return (
         <div style={{ position: 'absolute', width: '100%', bottom: 10, fontSize: 12 }}>
             <div style={{ display: 'flex', flexDirection: 'row' }}>
-                <a style={{ paddingRight: 15 }} href="https://www.linkedin.com/in/willbenmitchell/" target="_blank" rel="noopener noreferrer">
-                    LinkedIn
+                <a style={{ paddingRight: 15 }} href="https://github.com/willbenmitch/bugger-your-neighbour#rules" target="_blank" rel="noopener noreferrer">
+                    Rules
                 </a>
-                <a style={{ paddingRight: 15 }} href="https://github.com/willbenmitch" target="_blank" rel="noopener noreferrer">
-                    GitHub
-                </a>
-                <a style={{ paddingRight: 15 }} href="https://twitter.com/WillBenMitchell" target="_blank" rel="noopener noreferrer">
-                    Twitter
-                </a>
-                <a style={{ paddingRight: 15 }} href="https://willbenmitch.com" target="_blank" rel="noopener noreferrer">
-                    Web
+                <a style={{ paddingRight: 15 }} href="https://willbenmitch.com#contact" target="_blank" rel="noopener noreferrer">
+                    Contact
                 </a>
                 <p style={{ opacity: 0.6 }}>willbenmitch {new Date().getFullYear()}</p>
             </div>
