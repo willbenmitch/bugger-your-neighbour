@@ -50,29 +50,37 @@ class UserHand extends React.Component<Props, State> {
         if (id === undefined) {
             return <div></div>
         }
-        const hand = cards.map((card, i) => {
-            const mod = i % 3
-            let x
-            switch (mod) {
-                case 0:
-                    y += 150
-                    x = -120
-                    break
-                case 1:
-                    x = -20
-                    break
-                case 2:
-                default:
-                    x = 80
-                    break
-            }
-            return (
-                <div className={`card ${suitMap(card.suit)} rank${card.rank}`} style={{ transform: `translate(${x}px, ${y}px)` }}>
-                    <div className="face"></div>
-                    {roundState === RoundState.playing && isPlayerTurn && <button onClick={(e) => onPlayCard(e, card, id)}>Play Card</button>}
-                </div>
-            )
-        })
+        const hand = cards
+            .sort((a, b) => {
+                // ace high sorting logic
+                const aRank = a.rank === 1 ? 14 : a.rank
+                const bRank = b.rank === 1 ? 14 : b.rank
+                return bRank - aRank
+            })
+            .sort((a, b) => a.suit - b.suit)
+            .map((card, i) => {
+                const mod = i % 3
+                let x
+                switch (mod) {
+                    case 0:
+                        y += 150
+                        x = -120
+                        break
+                    case 1:
+                        x = -20
+                        break
+                    case 2:
+                    default:
+                        x = 80
+                        break
+                }
+                return (
+                    <div className={`card ${suitMap(card.suit)} rank${card.rank}`} style={{ transform: `translate(${x}px, ${y}px)` }}>
+                        <div className="face"></div>
+                        {roundState === RoundState.playing && isPlayerTurn && <button onClick={(e) => onPlayCard(e, card, id)}>Play Card</button>}
+                    </div>
+                )
+            })
 
         const bidJSX = roundState === RoundState.bidding && isPlayerTurn && (
             <div>
