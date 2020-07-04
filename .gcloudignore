@@ -3,6 +3,7 @@
 
 # Included files and folders that are excluded during gitignore
 !**/build
+!*.env.production
 
 #Files
 **/README.md
