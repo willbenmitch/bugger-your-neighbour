@@ -1,5 +1,5 @@
 import React from 'react'
-import _ from 'lodash'
+// import _ from 'lodash'
 import './Game.css'
 // @ts-ignore
 import io from 'socket.io-client'
@@ -7,23 +7,12 @@ import io from 'socket.io-client'
 import Deck from 'deck-of-cards'
 import User from '../User'
 import UserHand from '../UserHand'
-import { Card, Player, Round, RoundState, Game as GameType, Hand, Result, GameState } from '../types'
+import { Card, Round, RoundState, Game as GameType, Hand, Result, GameState, Player } from '../types'
 import { getHandResult, calculatePoints, didFollowSuit } from '../../utils/gameLogic'
 import { getRoundOrder, getNextDealerIndex, getRoundsToPlay } from '../../utils/getRoundOrder'
 import Results from '../Results'
-
-const positions: Player[] = [
-    { id: 0, isOccupied: false, name: 'Open', x: 58, y: 5, cards: [] },
-    { id: 1, isOccupied: false, name: 'Open', x: 42, y: 5, cards: [] },
-    { id: 2, isOccupied: false, name: 'Open', x: 25, y: 20, cards: [] },
-    { id: 3, isOccupied: false, name: 'Open', x: 25, y: 45, cards: [] },
-    { id: 4, isOccupied: false, name: 'Open', x: 25, y: 70, cards: [] },
-    { id: 5, isOccupied: false, name: 'Open', x: 42, y: 80, cards: [] },
-    { id: 6, isOccupied: false, name: 'Open', x: 58, y: 80, cards: [] },
-    { id: 7, isOccupied: false, name: 'Open', x: 75, y: 70, cards: [] },
-    { id: 8, isOccupied: false, name: 'Open', x: 75, y: 45, cards: [] },
-    { id: 9, isOccupied: false, name: 'Open', x: 75, y: 20, cards: [] },
-]
+import { GameStateMessage, PlayCardsMessage, positions } from './utils'
+import { getInitialState } from './initialState'
 
 type Props = {}
 type State = {
@@ -34,53 +23,10 @@ type State = {
     showResults: boolean
 }
 
-export type GameStateMessage = { game: GameType; round: Round; hand: Hand }
-export type PlayCardsMessage = GameStateMessage & {
-    cards: Card[]
-    x: number
-    y: number
-    rot?: number
-    side: 'front' | 'back'
-    zIndex?: number
-}
-
-const initialGame: GameType = {
-    state: GameState.idle,
-    users: positions,
-    activeUser: undefined,
-    roundsToPlay: [],
-    rounds: [],
-}
-
-const initialRound: Round = {
-    id: 1,
-    cardsToDeal: 1,
-    dealerId: undefined,
-    roundOrder: [],
-    state: RoundState.idle,
-    trumpCard: undefined,
-    bids: [],
-    hands: [],
-    results: [],
-}
-
-const initialHand = {
-    cardLed: undefined,
-    cards: [],
-    winnerId: undefined,
-}
-
-const getInitialState = (): State => ({
-    game: _.cloneDeep(initialGame),
-    round: _.cloneDeep(initialRound),
-    hand: _.cloneDeep(initialHand),
-    myId: undefined,
-    showResults: false,
-})
-
 class Game extends React.Component<Props, State> {
-    state = getInitialState()
+    state = getInitialState() as State
 
+    isUpdating: boolean = false
     deck: any
     socket: any
     clientHeight = () => document.documentElement.clientHeight
@@ -111,14 +57,13 @@ class Game extends React.Component<Props, State> {
 
             this.socketHandleGameState(msg, callback)
         })
+        // this.socket.on('sit', this.socketHandleSit)
+        // this.socket.on('leave', this.socketHandleLeave)
         this.socket.on('deal', this.socketHandleDeal)
         this.socket.on('playCards', this.socketHandlePlayCard)
         this.socket.on('gameState', this.socketHandleGameState)
         this.socket.on('showResults', (msg: GameStateMessage) => {
             this.setState({ ...msg }, this.handleOpenResults)
-        })
-        this.socket.on('pingClient', (msg: any) => {
-            this.socket.emit('pongServer', roomId, { id: this.state.myId })
         })
     }
 
@@ -126,6 +71,35 @@ class Game extends React.Component<Props, State> {
         this.socket.close()
         this.deck = undefined
     }
+
+    waitForIt = (callback: () => void) => {
+        while (this.isUpdating) {
+            // do nothing
+        }
+        callback()
+    }
+
+    // socketHandleSit = (msg: { user: Player }) => {
+    //     this.waitForIt(() => {
+    //         this.isUpdating = true
+    //         const { user } = msg
+    //         const newUsers = this.state.game.users.map((u) => (u.id === user.id ? user : u))
+    //         this.setState({ game: { ...this.state.game, users: newUsers } }, () => {
+    //             this.isUpdating = false
+    //         })
+    //     })
+    // }
+
+    // socketHandleLeave = (msg: { user: Player }) => {
+    //     this.waitForIt(() => {
+    //         const { user } = msg
+    //         this.isUpdating = true
+    //         const newUsers = this.state.game.users.map((u) => (u.id === user.id ? user : u))
+    //         this.setState({ game: { ...this.state.game, users: newUsers } }, () => {
+    //             this.isUpdating = false
+    //         })
+    //     })
+    // }
 
     socketHandleDeal = (msg: GameStateMessage) => {
         const { game, round, hand } = msg
@@ -156,8 +130,14 @@ class Game extends React.Component<Props, State> {
     }
 
     socketHandleGameState = (msg: GameStateMessage, callback?: () => void) => {
-        const { game, round, hand } = msg
-        this.setState({ game, round, hand }, callback)
+        this.waitForIt(() => {
+            this.isUpdating = true
+            const { game, round, hand } = msg
+            this.setState({ game, round, hand }, () => {
+                this.isUpdating = false
+                callback && callback()
+            })
+        })
     }
 
     asyncDeal = () => {
@@ -251,31 +231,40 @@ class Game extends React.Component<Props, State> {
         e.preventDefault()
         // @ts-ignore
         const { id: roomId } = this.props.match.params
-        const { users } = this.state.game
-        users[id].isOccupied = false
-        users[id].name = 'Open'
-        this.setState({ game: { ...this.state.game, users }, myId: undefined }, () => {
-            const { game, round, hand } = this.state
-            this.socket.emit('gameState', roomId, { game, round, hand })
-        })
+        const user = this.state.game.users.find((u) => u.id === id)
+        if (!user) {
+            return
+        }
+        user.isOccupied = false
+        user.name = 'Open'
+        user.socketId = undefined
+        this.socket.emit('leave', roomId, { user })
+        // this.setState({ game: { ...this.state.game, users }, myId: undefined }, () => {
+        //     const { game, round, hand } = this.state
+        //     this.socket.emit('gameState', roomId, { game, round, hand })
+        // })
     }
 
     handleSit = (e: any, id: number) => {
         e.preventDefault()
         // @ts-ignore
         const { id: roomId } = this.props.match.params
+        const { id: socketId } = this.socket
         const { users } = this.state.game
         const user = users.find((u) => u.id === id)
         if (user === undefined) return alert('Could not find seat.')
         user.isOccupied = true
+        user.socketId = socketId
         let name = prompt("What's your name?", 'name')
+        if (!name) {
+            return
+        }
         const foundName = users.find((u) => u.name === name)
         if (foundName !== undefined) return alert('That name is taken, please choose another')
-        user.name = name ? name : `Default_${id}`
+        user.name = name
         const newUsers = users.map((u) => (u.id === id ? user : u))
         this.setState({ game: { ...this.state.game, users: newUsers }, myId: id }, () => {
-            const { game, round, hand } = this.state
-            this.socket.emit('gameState', roomId, { game, round, hand })
+            this.socket.emit('sit', roomId, { user })
         })
     }
 
@@ -532,7 +521,8 @@ class Game extends React.Component<Props, State> {
             return foundOccupied ? foundOccupied : position
         })
 
-        const state: State = { game: { ...initialGame, users }, round: initialRound, hand: initialHand, showResults: false }
+        const initialState = getInitialState()
+        const state: State = { game: { ...initialState.game, users }, round: initialState.round, hand: initialState.hand, showResults: false }
         this.setState(state, () => {
             const { game, round, hand } = this.state
             this.socket.emit('gameState', roomId, { game, round, hand })

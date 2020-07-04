@@ -5,6 +5,7 @@ export type Card = {
 
 export type Player = {
     id: number
+    socketId?: string
     isOccupied: boolean
     name: string
     x: number
