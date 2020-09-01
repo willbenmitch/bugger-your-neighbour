@@ -1,5 +1,4 @@
 import React from 'react'
-// import _ from 'lodash'
 import './Game.css'
 // @ts-ignore
 import io from 'socket.io-client'
@@ -57,8 +56,6 @@ class Game extends React.Component<Props, State> {
 
             this.socketHandleGameState(msg, callback)
         })
-        // this.socket.on('sit', this.socketHandleSit)
-        // this.socket.on('leave', this.socketHandleLeave)
         this.socket.on('deal', this.socketHandleDeal)
         this.socket.on('playCards', this.socketHandlePlayCard)
         this.socket.on('gameState', this.socketHandleGameState)
@@ -78,28 +75,6 @@ class Game extends React.Component<Props, State> {
         }
         callback()
     }
-
-    // socketHandleSit = (msg: { user: Player }) => {
-    //     this.waitForIt(() => {
-    //         this.isUpdating = true
-    //         const { user } = msg
-    //         const newUsers = this.state.game.users.map((u) => (u.id === user.id ? user : u))
-    //         this.setState({ game: { ...this.state.game, users: newUsers } }, () => {
-    //             this.isUpdating = false
-    //         })
-    //     })
-    // }
-
-    // socketHandleLeave = (msg: { user: Player }) => {
-    //     this.waitForIt(() => {
-    //         const { user } = msg
-    //         this.isUpdating = true
-    //         const newUsers = this.state.game.users.map((u) => (u.id === user.id ? user : u))
-    //         this.setState({ game: { ...this.state.game, users: newUsers } }, () => {
-    //             this.isUpdating = false
-    //         })
-    //     })
-    // }
 
     socketHandleDeal = (msg: GameStateMessage) => {
         const { game, round, hand } = msg
@@ -123,7 +98,6 @@ class Game extends React.Component<Props, State> {
                     rot,
                 })
                 card.setSide(side)
-                //
                 card.$el.style['z-index'] = zIndex ? zIndex : 1
             })
         })
@@ -221,7 +195,6 @@ class Game extends React.Component<Props, State> {
     }
 
     shuffle = () => {
-        // this.deck.mount(document.getElementById('table'))
         this.deck.intro()
         this.deck.shuffle()
         this.deck.shuffle()
@@ -231,18 +204,18 @@ class Game extends React.Component<Props, State> {
         e.preventDefault()
         // @ts-ignore
         const { id: roomId } = this.props.match.params
-        const user = this.state.game.users.find((u) => u.id === id)
+        const { users } = this.state.game
+        const user = users.find((u) => u.id === id)
         if (!user) {
             return
         }
         user.isOccupied = false
         user.name = 'Open'
         user.socketId = undefined
-        this.socket.emit('leave', roomId, { user })
-        // this.setState({ game: { ...this.state.game, users }, myId: undefined }, () => {
-        //     const { game, round, hand } = this.state
-        //     this.socket.emit('gameState', roomId, { game, round, hand })
-        // })
+        const newUsers = users.map((u) => (u.id === id ? user : u))
+        this.setState({ game: { ...this.state.game, users: newUsers }, myId: undefined }, () => {
+            this.socket.emit('leave', roomId, { user })
+        })
     }
 
     handleSit = (e: any, id: number) => {
