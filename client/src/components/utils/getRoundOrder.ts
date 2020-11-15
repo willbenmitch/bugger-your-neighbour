@@ -1,7 +1,7 @@
-import { Player, RoundStructure } from '../components/types'
+import { Player, RoundStructure } from '../types'
 
-export const getRoundOrder = (users: Player[], firstPlayerIndex?: number): number[] => {
-    const ids = users.map((user) => user.id).sort((a, b) => a - b)
+export const getRoundOrder = (players: Player[], firstPlayerIndex?: number): number[] => {
+    const ids = players.map((player) => player.position.id).sort((a, b) => a - b)
 
     // if dealerIndex is last, we need to set to zero
 
@@ -13,10 +13,10 @@ export const getRoundOrder = (users: Player[], firstPlayerIndex?: number): numbe
     return roundOrder
 }
 
-export const getNextDealerIndex = (users: Player[], previousDealerId: number): number => {
-    const index = users.findIndex((user) => user.id === previousDealerId)
+export const getNextDealerIndex = (players: Player[], previousDealerId: number): number => {
+    const index = players.sort((a, b) => a.position.id - b.position.id).findIndex((player) => player.position.id === previousDealerId)
 
-    return index === users.length - 1 ? 0 : index + 1
+    return index === players.length - 1 ? 0 : index + 1
 }
 
 export const getRoundsToPlay = (availableRounds: number): RoundStructure[] => {
@@ -37,9 +37,15 @@ export const getRoundsToPlay = (availableRounds: number): RoundStructure[] => {
         }
 
         return {
-            id,
+            roundNumber: id,
             cardsToDeal,
             withTrump,
         }
     })
+}
+
+export const getNextPlayerIndex = (roundOrder: number[], currentPlayerId: number): number | undefined => {
+    let playerIndex = roundOrder.findIndex((id) => id === currentPlayerId)
+    playerIndex++
+    return playerIndex >= roundOrder.length ? undefined : playerIndex
 }

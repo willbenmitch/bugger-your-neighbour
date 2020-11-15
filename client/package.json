@@ -2,29 +2,12 @@
     "name": "bugger-your-neighbour",
     "version": "0.1.0",
     "private": true,
-    "dependencies": {
-        "deck-of-cards": "^0.1.8",
-        "lodash": "^4.17.15",
-        "react": "^16.13.1",
-        "react-dom": "^16.13.1",
-        "react-modal": "^3.11.2",
-        "react-router-dom": "^5.1.2",
-        "react-scripts": "3.4.1",
-        "react-table": "^7.0.4",
-        "serve": "^11.3.0",
-        "socket.io": "^2.3.0",
-        "styled-components": "^5.1.0",
-        "typescript": "^3.7.5",
-        "uuid": "^8.0.0"
-    },
     "scripts": {
         "dev": "react-scripts start",
         "build": "react-scripts build",
         "test": "react-scripts test",
         "eject": "react-scripts eject",
-        "distribute": "ngrok http 5000",
-        "serve": "serve -s build",
-        "start": "npm run build && npm run distribute & npm run serve"
+        "start": "react-scripts start"
     },
     "eslintConfig": {
         "extends": "react-app"
@@ -42,18 +25,37 @@
         ]
     },
     "scarfSettings.enabled": false,
+    "dependencies": {
+        "deck-of-cards": "^0.1.8",
+        "lodash": "^4.17.20",
+        "react": "^16.13.1",
+        "react-dom": "^16.13.1",
+        "react-modal": "^3.11.2",
+        "react-router-dom": "^5.1.2",
+        "react-scripts": "^3.4.3",
+        "react-table": "^7.0.4",
+        "reflect-metadata": "^0.1.13",
+        "socket.io": "^2.3.0",
+        "styled-components": "^5.1.0",
+        "ts-node": "^9.0.0",
+        "ts-node-dev": "^1.0.0-pre.61",
+        "typescript": "^4.0.2",
+        "uuid": "^8.0.0"
+    },
     "devDependencies": {
         "@testing-library/jest-dom": "^5.5.0",
         "@testing-library/react": "^10.0.4",
         "@testing-library/user-event": "^10.1.0",
+        "@types/bluebird": "^3.5.32",
         "@types/jest": "^25.2.1",
-        "@types/lodash": "^4.14.150",
-        "@types/node": "^13.13.4",
-        "@types/react": "^16.9.34",
+        "@types/lodash": "^4.14.161",
+        "@types/node": "^14.6.2",
         "@types/react-dom": "^16.9.7",
         "@types/react-modal": "^3.10.5",
         "@types/react-router-dom": "^5.1.5",
         "@types/react-table": "^7.0.16",
+        "@types/react": "^16.9.34",
+        "@types/socket.io": "^2.1.11",
         "@types/styled-components": "^5.1.0",
         "@types/uuid": "^7.0.3"
     }

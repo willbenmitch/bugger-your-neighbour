@@ -1,4 +1,4 @@
-import { Player, Game as GameType, Round, Hand, Card, GameState, RoundState } from '../types'
+import { Player, Game as GameType, Round, Hand, Card, GameState, RoundState } from './types'
 
 export const positions: Player[] = [
     { isOccupied: false, name: 'Open', position: { id: 0, x: 58, y: 5 }, cards: [] },
@@ -47,4 +47,10 @@ export const initialHand: Omit<Hand, 'id'> = {
     cardLed: undefined,
     cards: [],
     winnerId: undefined,
+}
+
+export const getNextPlayerIndex = (roundOrder: number[], currentPlayerId: number): number | undefined => {
+    let playerIndex = roundOrder.findIndex((id) => id === currentPlayerId)
+    playerIndex++
+    return playerIndex >= roundOrder.length ? undefined : playerIndex
 }

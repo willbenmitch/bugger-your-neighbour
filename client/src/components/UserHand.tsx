@@ -5,12 +5,12 @@ type Props = {
     cards: Card[]
     isPlayerTurn: boolean
     canReneg: boolean
-    onPlayCard: (e: any, card: Card, userId?: number) => void
+    onPlayCard: (e: any, card: Card, playerId: number) => void
     id?: number
     roundState: RoundState
     bid?: number
     availableBids: number[]
-    onBid: (bid: number, userId: number) => void
+    onBid: (bid: number, playerId: number) => void
 }
 type State = { bid?: number }
 export const suitMap = (suit: number) => (suit === 0 ? 'spades' : suit === 1 ? 'hearts' : suit === 2 ? 'clubs' : suit === 3 ? 'diamonds' : 'joker')
@@ -25,7 +25,7 @@ class UserHand extends React.Component<Props, State> {
     handleBid = (e: any) => {
         const { onBid, id, availableBids } = this.props
         e.preventDefault()
-        if (this.state.bid === undefined || availableBids.find((bid) => bid === this.state.bid) === undefined) {
+        if (this.state.bid == undefined || availableBids.find((bid) => bid === this.state.bid) == undefined) {
             return alert(`You have to enter a valid bid: ${availableBids.toString()}`)
         }
         onBid(this.state.bid, id as number)
@@ -38,7 +38,7 @@ class UserHand extends React.Component<Props, State> {
     }
 
     handleKeyDown = (e: any) => {
-        if (e.keyCode == 13) {
+        if (e.keyCode === 13) {
             this.handleBid(e)
         }
     }
@@ -47,7 +47,7 @@ class UserHand extends React.Component<Props, State> {
         const { cards, onPlayCard, id, roundState, bid, isPlayerTurn } = this.props
         let y = 0
 
-        if (id === undefined) {
+        if (id == undefined) {
             return <div></div>
         }
         const hand = cards

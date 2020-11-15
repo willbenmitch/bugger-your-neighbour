@@ -22,8 +22,6 @@ const customStyles = {
     },
 }
 
-const data = [{}]
-
 class Results extends React.Component<Props, State> {
     render() {
         const { isOpen, onRequestClose, game } = this.props
@@ -109,26 +107,26 @@ type ResultsTableProps = {
 
 function ResultsTable(props: ResultsTableProps) {
     const { game } = props
-    const { users } = game
+    const { players } = game
 
-    const accumulator = users.reduce((a, c) => ({ ...a, [`points${c.id}`]: 0 }), { round: 'total' })
+    const accumulator = players.reduce((a, c) => ({ ...a, [`points${c.position.id}`]: 0 }), { round: 'total' })
 
     const userTotals = game.rounds.reduce(
         (a, c) => ({
             ...a,
             ...c.results.reduce((acc: any, cur) => {
-                const points = acc[`points${cur.userId}`] + cur.points
-                return { ...acc, [`points${cur.userId}`]: points }
+                const points = acc[`points${cur.playerId}`] + cur.points
+                return { ...acc, [`points${cur.playerId}`]: points }
             }, a),
         }),
         accumulator,
     )
 
     const data = game.rounds.map((r) => {
-        const ret: any = { round: r.id }
+        const ret: any = { round: r.roundNumber }
         const userResults = r.results.map((result) => ({
-            [`bid${result.userId}`]: result.bid,
-            [`points${result.userId}`]: result.points,
+            [`bid${result.playerId}`]: result.bid,
+            [`points${result.playerId}`]: result.points,
         }))
         userResults.forEach((result) => Object.keys(result).map((key) => (ret[key] = result[key])))
         return ret
@@ -156,17 +154,17 @@ function ResultsTable(props: ResultsTableProps) {
             {
                 Header: 'Players',
                 accessor: 'players',
-                columns: users.map((user) => ({
-                    Header: user.name,
-                    accessor: user.id.toString(),
+                columns: players.map((player) => ({
+                    Header: player.name,
+                    accessor: player.position.id.toString(),
                     columns: [
                         {
                             Header: 'Bid',
-                            accessor: `bid${user.id}`,
+                            accessor: `bid${player.position.id}`,
                         },
                         {
                             Header: 'Points',
-                            accessor: `points${user.id}`,
+                            accessor: `points${player.position.id}`,
                         },
                     ],
                 })),

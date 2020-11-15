@@ -1,13 +1,10 @@
 import React from 'react'
-import { BrowserRouter as Router, Switch, Route, Link, useRouteMatch, useParams, useHistory } from 'react-router-dom'
+import { BrowserRouter as Router, Route, Link, useHistory } from 'react-router-dom'
 import { v4 as uuidv4 } from 'uuid'
 
-import '../node_modules/deck-of-cards/example/example.css'
+import 'deck-of-cards/example/example.css'
 // import Home from './components/Home'
 import Game from './components/Game/Game'
-
-type Props = {}
-type State = {}
 
 export enum Routes {
     home = '/',

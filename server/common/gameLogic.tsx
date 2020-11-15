@@ -1,4 +1,4 @@
-import { Card, UserCard } from '../components/types'
+import { Card, UserCard } from './types'
 
 const getHighestCard = (hand: Card[], isAceHigh: boolean): Card => {
     // sort out isAceHigh
@@ -34,7 +34,7 @@ const getHighestTrumpCard = (trump: number, hand: Card[], isAceHigh: boolean, in
 export const getHandResult = (ledCard: Card, hand: UserCard[], trump?: number, isAceHigh: boolean = true, includeBowers: boolean = false): UserCard => {
     // hand into 2 arrays: trump & ledSuit
     // need to include bowers (bauers)
-    const trumps = trump === undefined ? [] : hand.filter((card) => isTrump(trump, card, includeBowers))
+    const trumps = trump == undefined ? [] : hand.filter((card) => isTrump(trump, card, includeBowers))
     const ledSuit = hand.filter((card) => card.suit === ledCard.suit)
 
     let highest
@@ -55,5 +55,5 @@ export const calculatePoints = (bid: number, actual: number) => {
 
 export const didFollowSuit = (card: Card, hand: Card[], cardLed?: Card): boolean => {
     // if no card is led, then true, else if you followed suit then true, else if you don't have the suit then true else false
-    return cardLed === undefined || card.suit === cardLed.suit || hand.find((c) => c.suit === cardLed.suit) === undefined
+    return cardLed == undefined || card.suit === cardLed.suit || hand.find((c) => c.suit === cardLed.suit) == undefined
 }

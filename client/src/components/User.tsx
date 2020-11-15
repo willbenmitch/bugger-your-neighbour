@@ -1,6 +1,6 @@
 import React from 'react'
 import { Card, RoundState } from './types'
-import { rankMap, suitMap, suitMapUnicode } from './UserHand'
+import { rankMap, suitMapUnicode } from './UserHand'
 
 type Props = {
     name: string

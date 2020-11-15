@@ -1,0 +1,39 @@
+version: '3'
+services:
+    db:
+        image: postgres:9.6
+        ports:
+            - 5432:5432
+        environment:
+            POSTGRES_USER: willbenmitch
+            POSTGRES_PASSWORD: P4ssword!
+            POSTGRES_DB: buggerdb
+        volumes:
+            - db_data:/var/lib/postgresql/data
+        networks:
+            - main
+
+    server: &server
+        build: .
+        command: npm run debug
+        volumes:
+            - .:/server
+            - node_modules:/server/node_modules/
+        ports:
+            - 4000:4000
+            - 9000:9000
+        networks:
+            - main
+        depends_on:
+            - db
+        environment:
+            NODE_ENV: development
+            POSTGRES_USER: willbenmitch
+            POSTGRES_PASSWORD: P4ssword!
+            POSTGRES_DB: buggerdb
+volumes:
+    db_data:
+    node_modules:
+
+networks:
+    main:

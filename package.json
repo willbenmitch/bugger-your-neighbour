@@ -6,15 +6,12 @@
     "scripts": {
         "build": "cd client/ && npm run build",
         "deploy": "npm run build && sudo gcloud app deploy",
+        "debug": "cd server/ && npm run debug",
+        "client": "cd client/ && npm run dev",
         "test": "echo \"Error: no test specified\" && exit 1",
-        "postinstall": "npm-recursive-install --rootDir=server",
         "openTerminal": "ttab -a Terminal",
-        "dev": "npm run serverDev",
-        "clientDev": "npm run openTerminal -- -d client/ npm run dev",
-        "serverDev": "npm run openTerminal -- -d server/ npm run dev",
-        "server": "npm run openTerminal -- -d server/ npm run distribute & npm run prod",
-        "client": "npm run openTerminal -- -d client/ npm run start",
-        "start": "cd server/ && npm run start"
+        "start": "cd server/ && npm run start",
+        "postinstall": "npm-recursive-install --rootDir=server"
     },
     "repository": {
         "type": "git",
@@ -29,9 +26,7 @@
     "dependencies": {
         "recursive-install": "^1.4.0"
     },
-    "devDependencies": {
-        "ttab": "^0.6.1"
-    },
+    "devDependencies": {},
     "engines": {
         "node": "12.*.*"
     }

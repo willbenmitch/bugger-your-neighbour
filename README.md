@@ -30,20 +30,6 @@ cd server/ && npm run dev
 cd ../client && npm run dev
 ```
 
-## Serving for distribution (via ngrok)
-
-If you're on **MacOS**, from the top directory `bugger/`, run `npm run server`. This will open a new tab.
-
-For other platforms, run `cd server/ && npm run start`
-
-In both platforms, you'll next need to look on your console for an output url, such as `https://4ebfebe3.ngrok.io`, copy this url, and paste it in your client's production environment file: `.env.production`.
-
-Then, you're on **MacOS**, from the top directory `bugger/`, run `npm run client`. This will open a new tab.
-
-For other platforms, run `cd ../client/ && npm run start`
-
-In both cases, you'll next need to look on your console for an output url, ending in `.ngrok.io` (note that this will be different than the url output for the server). Copy this url to share with your players.
-
 ## Rules
 
 The game is centered around the taking of tricks, where a trick is taken when a player plays either (in order of importance): the highest trump suited card, or the highest card of the suit that was led. Every player must follow suit, meaning if the first player for a hand plays a spade, every player must also play a spade (if they have one). If a player does not have a spade, then they may play any card in their hand.
