@@ -23,7 +23,6 @@ export const findOrCreateGame = async (roomId: string) => {
                     roundNumber: 1,
                     cardsToDeal: 1,
                     dealerId: undefined,
-                    roundOrder: [],
                     state: 'idle',
                     trumpCard: undefined,
                     bids: [],
@@ -38,6 +37,7 @@ export const findOrCreateGame = async (roomId: string) => {
                     cardLed: undefined,
                     cards: [],
                     winnerId: undefined,
+                    order: [],
                     roundId: round.id,
                 },
                 { transaction },
@@ -103,7 +103,7 @@ export const getGameState = async (roomId: string): Promise<GameStateMessage> =>
 }
 
 export const prepareRound = async (roomId: string, dealerIndex: number, roundNumber: number, transaction: Transaction) => {
-    const game = await db.Game.findOne({ where: { roomId }, include: [Round, Player], transaction })
+    const game = await db.Game.findOne({ where: { roomId }, include: [Round, Player, Hand], transaction })
     if (!game) {
         throw Error(`no game found with roomId: ${roomId}`)
     }
@@ -117,15 +117,15 @@ export const prepareRound = async (roomId: string, dealerIndex: number, roundNum
 
     const firstPlayerIndex = dealerIndex === sortedPlayers.length - 1 ? 0 : dealerIndex + 1
 
-    const roundOrder = getRoundOrder(sortedPlayers, firstPlayerIndex)
-    const activeUser = roundOrder[0]
+    const initialHandOrder = getRoundOrder(sortedPlayers, firstPlayerIndex)
+    const activeUser = initialHandOrder[0]
     await game.update({ activeUser }, { transaction })
 
-    return { game, roundStructure, dealerId, roundOrder }
+    return { game, roundStructure, dealerId, initialHandOrder }
 }
 
 export const newRound = async (roomId: string, dealerIndex: number, roundNumber: number, transaction: Transaction) => {
-    const { game, roundStructure, dealerId, roundOrder } = await prepareRound(roomId, dealerIndex, roundNumber, transaction)
+    const { game, roundStructure, dealerId, initialHandOrder } = await prepareRound(roomId, dealerIndex, roundNumber, transaction)
 
     const round = await db.Round.create(
         {
@@ -133,7 +133,6 @@ export const newRound = async (roomId: string, dealerIndex: number, roundNumber:
             roundNumber,
             cardsToDeal: roundStructure.cardsToDeal,
             dealerId,
-            roundOrder,
             state: 'bidding',
             trumpCard: undefined,
             bids: [],
@@ -147,6 +146,7 @@ export const newRound = async (roomId: string, dealerIndex: number, roundNumber:
         {
             cardLed: undefined,
             cards: [],
+            order: initialHandOrder,
             winnerId: undefined,
             roundId: round.id,
         },
@@ -208,7 +208,7 @@ export const playCard = async (roomId: string, msg: { card: Card; playerId: numb
         }
 
         const round = await db.Round.findByPk(roundId, { transaction })
-
+        
         if (!round) {
             throw Error('no round found after playing card')
         }
@@ -218,6 +218,7 @@ export const playCard = async (roomId: string, msg: { card: Card; playerId: numb
         if (!hand) {
             throw Error('no hand found after playing card')
         }
+        console.log('hand.order', hand.order)
 
         const player = await db.Player.findOne({ where: { gameId: game.id, position: { id: playerId } }, transaction })
 
@@ -231,12 +232,14 @@ export const playCard = async (roomId: string, msg: { card: Card; playerId: numb
             await hand.update({ cardLed: card }, { transaction })
         }
 
-        const nextPlayerIndex = getNextPlayerIndex(round.roundOrder, playerId)
+        console.log('playerId', playerId)
+        const nextPlayerIndex = getNextPlayerIndex(hand.order, playerId)
+        console.log('nextPlayerIndex', nextPlayerIndex)
         let nextPlayer: number | undefined
         if (nextPlayerIndex === undefined) {
             nextPlayer = undefined
         } else {
-            nextPlayer = round.roundOrder[nextPlayerIndex]
+            nextPlayer = hand.order[nextPlayerIndex]
         }
 
         // remove card from player

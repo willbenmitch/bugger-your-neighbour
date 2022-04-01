@@ -60,7 +60,7 @@ export class BuggerGame {
     }
 
     async sit(msg: { socketId: string | undefined; name: string; id: number; isOccupied: boolean }) {
-        console.log('this', this)
+        // console.log('this', this)
         console.log('roomId', this.roomId)
         const gameStateMessage = await handlePersonMoving(this.roomId, msg)
         console.log(
@@ -98,13 +98,13 @@ export class BuggerGame {
             await game.update({ roundsToPlay, state: 'playing' }, { transaction })
 
             const dealerIndex = Math.floor(Math.random() * players.length)
-            const { roundStructure, roundOrder, dealerId } = await prepareRound(this.roomId, dealerIndex, 1, transaction)
+            const { roundStructure, initialHandOrder, dealerId } = await prepareRound(this.roomId, dealerIndex, 1, transaction)
             // await newRound(id, dealerIndex, 1, transaction)
             await db.Round.update(
                 {
                     cardsToDeal: roundStructure.cardsToDeal,
                     dealerId,
-                    roundOrder,
+                    bidOrder: initialHandOrder,
                     state: 'bidding',
                     trumpCard: undefined,
                     bids: [],
@@ -113,6 +113,8 @@ export class BuggerGame {
                 },
                 { where: { gameId: game.id }, transaction },
             )
+
+            await db.Hand.update({order: initialHandOrder})
         })
 
         const gameStateMessage = await getGameState(this.roomId)
@@ -193,6 +195,7 @@ export class BuggerGame {
 
             // check to see if players have more cards
             const usersWithCardsLeft = game.players.filter((player) => player.cards.length !== 0)
+            console.log("usersWithCardsLeft", usersWithCardsLeft.length)
             if (usersWithCardsLeft.length === 0) {
                 // round is over
 

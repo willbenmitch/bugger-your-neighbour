@@ -52,6 +52,7 @@ export type Hand = {
     cardLed?: Card
     cards: UserCard[]
     winnerId?: number
+    order: number[],
 }
 
 export type Result = {
@@ -66,7 +67,6 @@ export type Round = {
     roundNumber: number
     cardsToDeal: number
     dealerId?: number
-    roundOrder: number[]
     state: RoundState
     trumpCard?: Card
     bids: Bid[]

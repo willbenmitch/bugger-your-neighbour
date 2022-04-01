@@ -44,8 +44,8 @@ export const getRoundsToPlay = (availableRounds: number): RoundStructure[] => {
     })
 }
 
-export const getNextPlayerIndex = (roundOrder: number[], currentPlayerId: number): number | undefined => {
-    let playerIndex = roundOrder.findIndex((id) => id === currentPlayerId)
+export const getNextPlayerIndex = (handOrder: number[], currentPlayerId: number): number | undefined => {
+    let playerIndex = handOrder.findIndex((id) => id === currentPlayerId)
     playerIndex++
-    return playerIndex >= roundOrder.length ? undefined : playerIndex
+    return playerIndex >= handOrder.length ? undefined : playerIndex
 }

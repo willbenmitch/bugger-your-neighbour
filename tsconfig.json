@@ -1,0 +1,27 @@
+{
+    "compilerOptions": {
+        // "baseUrl": ".",
+        "target": "es2017",
+        "module": "commonjs",
+        "moduleResolution": "node",
+        "experimentalDecorators": true,
+        "emitDecoratorMetadata": true,
+        "noImplicitAny": true,
+        "strictNullChecks": true,
+        "alwaysStrict": true,
+        "noUnusedLocals": true,
+        "preserveConstEnums": true,
+        "sourceMap": true,
+        // "outDir": "dist",
+        "rootDirs": ["./"],
+        "strict": false,
+        "lib": ["es2019", "dom"],
+        "esModuleInterop": true,
+        "allowSyntheticDefaultImports": true,
+        "resolveJsonModule": true,
+        "typeRoots": ["node_modules/@types"],
+        "jsx": "react"
+    },
+    "exclude": ["node_modules"],
+    "include": ["./"]
+}

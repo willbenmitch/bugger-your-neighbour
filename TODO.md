@@ -1,0 +1,14 @@
+-   Fix shuffling race condition
+    -   test fix
+-   make the cards responsive
+    -   they currently hide the bids
+    -   they also randomly are placed in the middle of the table, it could be better to put them in front of the person who played the card
+-   dealing MAY be broken
+    -   'name' frequently is the dealer
+        -   they are not the last to sign up
+        -   they use the default name
+        -   regardless of position in game
+-   add noise for shuffling
+-   player management
+-   the spy and the traitor
+-   show a bid tracker

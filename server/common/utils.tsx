@@ -35,7 +35,6 @@ export const initialRound: Omit<Round, 'id'> = {
     roundNumber: 1,
     cardsToDeal: 1,
     dealerId: undefined,
-    roundOrder: [],
     state: RoundState.idle,
     trumpCard: undefined,
     bids: [],
@@ -46,11 +45,12 @@ export const initialRound: Omit<Round, 'id'> = {
 export const initialHand: Omit<Hand, 'id'> = {
     cardLed: undefined,
     cards: [],
+    order: [],
     winnerId: undefined,
 }
 
-export const getNextPlayerIndex = (roundOrder: number[], currentPlayerId: number): number | undefined => {
-    let playerIndex = roundOrder.findIndex((id) => id === currentPlayerId)
+export const getNextPlayerIndex = (handOrder: number[], currentPlayerId: number): number | undefined => {
+    let playerIndex = handOrder.findIndex((id) => id === currentPlayerId)
     playerIndex++
-    return playerIndex >= roundOrder.length ? undefined : playerIndex
+    return playerIndex >= handOrder.length ? undefined : playerIndex
 }

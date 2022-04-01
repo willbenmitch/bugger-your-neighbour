@@ -3,11 +3,11 @@
     "version": "0.1.0",
     "private": true,
     "scripts": {
-        "dev": "react-scripts start",
+        "dev": "react-scripts --openssl-legacy-provider start",
         "build": "react-scripts build",
         "test": "react-scripts test",
         "eject": "react-scripts eject",
-        "start": "react-scripts start"
+        "start": "react-scripts --openssl-legacy-provider start"
     },
     "eslintConfig": {
         "extends": "react-app"
@@ -50,11 +50,11 @@
         "@types/jest": "^25.2.1",
         "@types/lodash": "^4.14.161",
         "@types/node": "^14.6.2",
+        "@types/react": "^16.9.34",
         "@types/react-dom": "^16.9.7",
         "@types/react-modal": "^3.10.5",
         "@types/react-router-dom": "^5.1.5",
         "@types/react-table": "^7.0.16",
-        "@types/react": "^16.9.34",
         "@types/socket.io": "^2.1.11",
         "@types/styled-components": "^5.1.0",
         "@types/uuid": "^7.0.3"

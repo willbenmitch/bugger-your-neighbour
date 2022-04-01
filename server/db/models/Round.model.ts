@@ -15,9 +15,6 @@ export class Round extends Model<Round> {
     @Column
     dealerId?: number
 
-    @Column({ allowNull: false, type: DataType.JSONB })
-    roundOrder: number[]
-
     @Column(DataType.STRING)
     state: keyof typeof RoundState
 

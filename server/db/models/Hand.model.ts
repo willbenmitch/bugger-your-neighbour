@@ -14,6 +14,9 @@ export class Hand extends Model<Hand> {
     @Column
     winnerId?: number
 
+    @Column({ allowNull: false, type: DataType.ARRAY(DataType.INTEGER) })
+    order: number[]
+
     @ForeignKey(() => Round)
     @Column
     roundId: number
