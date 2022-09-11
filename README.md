@@ -27,7 +27,7 @@ This command is currently supported for Terminal and iTerm2 only (through ttab).
 ```
 cd server/ && npm run dev
 
-cd ../client && npm run dev
+cd ../client && npm run start
 ```
 
 ## Serving for distribution (via ngrok)

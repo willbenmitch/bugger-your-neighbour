@@ -1,6 +1,5 @@
 import React from 'react'
 import './Game.css'
-// @ts-ignore
 import io from 'socket.io-client'
 // @ts-ignore
 import Deck from 'deck-of-cards'
@@ -10,7 +9,7 @@ import { Card, Round, RoundState, Game as GameType, Hand, Result, GameState, Pla
 import { getHandResult, calculatePoints, didFollowSuit } from '../../utils/gameLogic'
 import { getRoundOrder, getNextDealerIndex, getRoundsToPlay } from '../../utils/getRoundOrder'
 import Results from '../Results'
-import { GameStateMessage, PlayCardsMessage, positions } from './utils'
+import { GameStateMessage, keepAlive, PlayCardsMessage, positions } from './utils'
 import { getInitialState } from './initialState'
 
 type Props = {}
@@ -32,12 +31,23 @@ class Game extends React.Component<Props, State> {
     clientWidth = () => document.documentElement.clientWidth
     cardWidth = 120
     cardHeight = 100
+    keepAlive?: number
 
     componentDidMount() {
         // @ts-ignore
         const { id: roomId } = this.props.match.params
-        this.socket = io(`${process.env.REACT_APP_SERVER_URL}?id=${roomId}`)
+        // this.socket = io(`${process.env.REACT_APP_SERVER_URL}?id=${roomId}`)
+        if (process.env.NODE_ENV === 'development') {
+            // to handle sockets on different hosts
+            this.socket = io(process.env.REACT_APP_SERVER_URL, { query: { id: roomId } })
+        } else {
+            this.socket = io({ query: { id: roomId } })
+        }
+
+        //
+        
         this.socket.on('welcome', (msg: GameStateMessage) => {
+            // this.keepAlive = keepAlive(this.socket)
             console.log('welcome!')
             this.initiateDeck()
             const callback = () => {
@@ -65,6 +75,7 @@ class Game extends React.Component<Props, State> {
     }
 
     componentWillUnmount() {
+        // clearInterval(this.keepAlive)
         this.socket.close()
         this.deck = undefined
     }

@@ -48,3 +48,7 @@ export const initialHand = {
     cards: [],
     winnerId: undefined,
 }
+
+export const keepAlive = (socket: any) => {
+    return setInterval(() => socket.emit('ping'), 5000)
+}

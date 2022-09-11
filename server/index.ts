@@ -1,5 +1,7 @@
+const fs = require('fs')
 const express = require('express')
 const http = require('http')
+const https = require('https')
 const IOsocket = require('socket.io')
 const cors = require('cors')
 const path = require('path')
@@ -28,7 +30,14 @@ const corsOptions = {
 
 app.use(cors(corsOptions))
 app.use(express.static('../client/build'))
+
+const options = {
+  key: fs.readFileSync('keys/key.pem'),
+  cert: fs.readFileSync('keys/cert.pem')
+};
+
 const server = http.createServer(app)
+// const server = https.createServer(options, app)
 const io = IOsocket(server)
 io.origins((origin: any, callback: any) => {
     callback(null, true)
@@ -72,6 +81,10 @@ const startServer = () => {
         }
 
         socket.emit('welcome', gameState[id])
+
+        socket.on('ping', function () {
+            socket.in(id).emit('pong')
+        })
 
         socket.on('disconnect', function () {
             console.log('user disconnected with socketId: ', socketId)
@@ -149,6 +162,7 @@ const startServer = () => {
     server.listen(PORT, function () {
         const host = server.address().address
         const port = server.address().port
+        console.log(server.address())
         let protocol = 'http'
         if (NODE_ENV === 'production') {
             protocol = 'https'

@@ -10,7 +10,7 @@
         "postinstall": "npm-recursive-install --rootDir=server",
         "openTerminal": "ttab -a Terminal",
         "dev": "npm run serverDev",
-        "clientDev": "npm run openTerminal -- -d client/ npm run dev",
+        "clientDev": "npm run openTerminal -- -d client/ npm run start",
         "serverDev": "npm run openTerminal -- -d server/ npm run dev",
         "server": "npm run openTerminal -- -d server/ npm run distribute & npm run prod",
         "client": "npm run openTerminal -- -d client/ npm run start",
@@ -30,9 +30,9 @@
         "recursive-install": "^1.4.0"
     },
     "devDependencies": {
-        "ttab": "^0.6.1"
+        "ttab": "^0.7.2"
     },
     "engines": {
-        "node": "12.*.*"
+        "node": "16.*.*"
     }
 }

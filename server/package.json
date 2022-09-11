@@ -8,6 +8,7 @@
         "server": "ts-node index.ts",
         "dev": "env NODE_ENV=development npm run server",
         "prod": "env NODE_ENV=production npm run server",
+        "serve:dev": "npm run dev & ttab lt --port 4000 --subdomain buggeryourneighbour",
         "distribute": "ngrok http 4000",
         "start": "npm run prod",
         "clientBuild": "cd ../client/ && npm run build"
@@ -27,5 +28,9 @@
         "socket.io": "^2.3.0",
         "ts-node": "^8.8.2",
         "typescript": "^3.8.3"
+    },
+    "devDependencies": {
+        "localtunnel": "^2.0.2",
+        "ttab": "^0.7.2"
     }
 }
